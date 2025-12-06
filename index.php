@@ -228,6 +228,7 @@ $username = $_SESSION['username'] ?? '';
                                     <th scope="col">Terdampak</th>
                                     <th scope="col">Kerusakan</th>
                                     <th scope="col">Indeks Dampak (SAW)</th>
+                                    <th scope="col">Status</th> <!-- ADDED STATUS -->
                                     <th scope="col">Foto</th>
                                     <th scope="col">Aksi</th>
                                 </tr>
@@ -257,6 +258,7 @@ $username = $_SESSION['username'] ?? '';
                                     <th scope="col">Lokasi</th>
                                     <th scope="col">Keterangan</th>
                                     <th scope="col">Tanggal</th>
+                                    <th scope="col">Status</th> <!-- ADDED STATUS -->
                                     <th scope="col">Foto</th>
                                     <th scope="col">Aksi</th>
                                 </tr>

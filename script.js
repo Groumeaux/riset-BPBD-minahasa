@@ -14,9 +14,9 @@ const quantificationScores = {
     jenis: {
         'Angin Puting Beliung': 1,
         'Banjir': 2,
-        'Kebakaran': 2, // KATEGORI BARU (Skor setara banjir)
+        'Kebakaran': 2, 
         'Tanah Longsor': 3,
-        'Kebakaran Hutan': 3, // KATEGORI BARU (Skor setara longsor)
+        'Kebakaran Hutan': 3, 
         'Gempa Bumi': 4
     }
 };
@@ -97,6 +97,17 @@ function runSAW(data) {
     return sortedData;
 }
 
+// Fungsi Helper untuk Alert Alasan Penolakan
+window.showRejectReason = function(reason) {
+    Swal.fire({
+        title: 'Alasan Penolakan',
+        text: reason,
+        icon: 'warning',
+        confirmButtonText: 'Saya Mengerti, Saya akan Revisi',
+        confirmButtonColor: '#e60013'
+    });
+};
+
 /**
  * Menampilkan data BENCANA (SAW) ke tabel #report-table-body-bencana
  */
@@ -106,7 +117,7 @@ function generateBencanaTable(data) {
     tableBody.innerHTML = '';
 
     if (rankedData.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-muted">Belum ada data bencana.</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="10" class="text-center py-4 text-muted">Belum ada data bencana.</td></tr>`;
         return;
     }
 
@@ -125,8 +136,24 @@ function generateBencanaTable(data) {
             photoThumbnails = '<span class="text-muted">Tidak ada foto</span>';
         }
 
+        // Logic Status Badge
+        let statusBadge = '';
+        let rowClass = '';
+        if (item.status === 'approved') {
+            statusBadge = '<span class="badge bg-success">Disetujui</span>';
+        } else if (item.status === 'rejected') {
+            // Escape special characters for the reason string in the onclick
+            let reason = item.reject_reason || 'Tidak ada alasan';
+            reason = reason.replace(/'/g, "\\'"); 
+            statusBadge = `<span class="badge bg-danger">Ditolak</span> 
+                           <br><a href="#" class="small text-danger fw-bold text-decoration-none" onclick="showRejectReason('${reason}'); return false;">Lihat Alasan</a>`;
+            rowClass = 'table-danger';
+        } else {
+            statusBadge = '<span class="badge bg-warning text-dark">Menunggu</span>';
+        }
+
         const row = `
-            <tr>
+            <tr class="${rowClass}">
                 <td class="text-center">
                     <span class="badge ${rankColor} rounded-pill fs-6">${rank}</span>
                 </td>
@@ -141,6 +168,7 @@ function generateBencanaTable(data) {
                      } rounded-pill">${item.tingkatKerusakan}</span>
                 </td>
                 <td class="fw-bold text-primary">${item.finalScore.toFixed(4)}</td>
+                <td>${statusBadge}</td>
                 <td>${photoThumbnails}</td>
                 <td>
                     <div class="btn-group" role="group">
@@ -166,7 +194,7 @@ function generateInsidenTable(data) {
     tableBody.innerHTML = '';
 
     if (data.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted">Belum ada laporan insiden.</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-muted">Belum ada laporan insiden.</td></tr>`;
         return;
     }
 
@@ -185,12 +213,28 @@ function generateInsidenTable(data) {
             photoThumbnails = '<span class="text-muted">Tidak ada foto</span>';
         }
 
+        // Logic Status Badge
+        let statusBadge = '';
+        let rowClass = '';
+        if (item.status === 'approved') {
+            statusBadge = '<span class="badge bg-success">Disetujui</span>';
+        } else if (item.status === 'rejected') {
+            let reason = item.reject_reason || 'Tidak ada alasan';
+            reason = reason.replace(/'/g, "\\'");
+            statusBadge = `<span class="badge bg-danger">Ditolak</span> 
+                           <br><a href="#" class="small text-danger fw-bold text-decoration-none" onclick="showRejectReason('${reason}'); return false;">Lihat Alasan</a>`;
+            rowClass = 'table-danger';
+        } else {
+            statusBadge = '<span class="badge bg-warning text-dark">Menunggu</span>';
+        }
+
         const row = `
-            <tr>
+            <tr class="${rowClass}">
                 <td class="fw-medium">${item.jenisBencana}</td>
                 <td>${item.lokasi}</td>
                 <td>${item.keterangan || '<span class="text-muted">N/A</span>'}</td>
                 <td>${formatDate(item.disaster_date)}</td>
+                <td>${statusBadge}</td>
                 <td>${photoThumbnails}</td>
                 <td>
                     <div class="btn-group" role="group">
@@ -208,6 +252,8 @@ function generateInsidenTable(data) {
     });
 }
 
+// ... (Rest of the file remains unchanged) ...
+// Helper, event listeners, printing logic etc.
 
 /**
  * Menangani submit form untuk menambah data bencana baru
@@ -365,7 +411,7 @@ function filterAndRenderReports() {
         if (bencanaData.length > 0) {
             $('#disaster-report-table').DataTable({
                 "pageLength": 5, "lengthMenu": [3, 5], "responsive": true, "order": [[0, "asc"]],
-                "columnDefs": [ { "orderable": false, "targets": [1, 2, 3, 4, 5, 7, 8] } ],
+                "columnDefs": [ { "orderable": false, "targets": [1, 2, 3, 4, 5, 7, 8, 9] } ], // Target column indexes updated
                 "language": { "search": "Cari:", "lengthMenu": "Tampilkan _MENU_ data", "info": "Menampilkan _START_ sampai _END_ dari _TOTAL_ data", "infoEmpty": "Tidak ada data", "infoFiltered": "(difilter dari _MAX_ total data)", "paginate": { "first": "Pertama", "last": "Terakhir", "next": "Berikutnya", "previous": "Sebelumnya" } }
             });
         }
@@ -374,7 +420,7 @@ function filterAndRenderReports() {
         if (insidenData.length > 0) {
             $('#insiden-report-table').DataTable({
                 "pageLength": 5, "lengthMenu": [3, 5], "responsive": true, "order": [[3, "desc"]],
-                "columnDefs": [ { "orderable": false, "targets": [0, 1, 2, 4, 5] } ],
+                "columnDefs": [ { "orderable": false, "targets": [0, 1, 2, 4, 5, 6] } ], // Target column indexes updated
                 "language": { "search": "Cari:", "lengthMenu": "Tampilkan _MENU_ data", "info": "Menampilkan _START_ sampai _END_ dari _TOTAL_ data", "infoEmpty": "Tidak ada data", "infoFiltered": "(difilter dari _MAX_ total data)", "paginate": { "first": "Pertama", "last": "Terakhir", "next": "Berikutnya", "previous": "Sebelumnya" } }
             });
         }

@@ -10,68 +10,76 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    echo json_encode(['success' => false, 'message' => 'Invalid request method']);
+    echo json_encode(['success' => false, 'message' => 'Invalid method']);
     exit;
 }
 
-$id = $_POST['id'] ?? null;
-$jenisBencana = trim($_POST['jenisBencana'] ?? ''); // Ini akan readonly, jadi aman
-$lokasi = trim($_POST['lokasi'] ?? '');
-$jiwaTerdampak = (int)($_POST['jiwaTerdampak'] ?? 0);
-$kkTerdampak = (int)($_POST['kkTerdampak'] ?? 0);
-$tingkatKerusakan = trim($_POST['tingkatKerusakan'] ?? '');
-$disasterDate = trim($_POST['disasterDate'] ?? '');
-$keterangan = trim($_POST['keterangan'] ?? null); // AMBIL KETERANGAN BARU
+$id = $_POST['id'] ?? '';
+$lokasi = $_POST['lokasi'] ?? '';
+$disasterDate = $_POST['disasterDate'] ?? '';
+$keterangan = $_POST['keterangan'] ?? null;
 
-if (!$id || empty($jenisBencana) || empty($lokasi) || $jiwaTerdampak < 0 || $kkTerdampak < 0 || empty($tingkatKerusakan) || empty($disasterDate)) {
-    echo json_encode(['success' => false, 'message' => 'All fields are required and must be valid']);
+// Ambil data lama untuk cek hak akses
+$stmt = $pdo->prepare("SELECT submitted_by, kategori_laporan FROM disasters WHERE id = ?");
+$stmt->execute([$id]);
+$report = $stmt->fetch();
+
+if (!$report) {
+    echo json_encode(['success' => false, 'message' => 'Data tidak ditemukan']);
     exit;
 }
 
-// Cek kepemilikan
-$role = $_SESSION['role'];
-$userId = $_SESSION['user_id'];
+// Cek otorisasi: Hanya pembuat laporan atau Head yang boleh edit
+// (Opsional: Batasi Head tidak boleh edit, hanya reject. Di sini kita biarkan user edit)
+if ($_SESSION['role'] !== 'head' && $report['submitted_by'] != $_SESSION['user_id']) {
+    echo json_encode(['success' => false, 'message' => 'Anda tidak berhak mengedit laporan ini']);
+    exit;
+}
+
+$kategori = $report['kategori_laporan'];
 
 try {
-    $checkStmt = $pdo->prepare("SELECT submitted_by FROM disasters WHERE id = ?");
-    $checkStmt->execute([$id]);
-    $disaster = $checkStmt->fetch();
+    $pdo->beginTransaction();
 
-    if (!$disaster) {
-        echo json_encode(['success' => false, 'message' => 'Laporan tidak ditemukan']);
-        exit;
-    }
+    if ($kategori === 'bencana') {
+        $jiwa = $_POST['jiwaTerdampak'] ?? 0;
+        $kk = $_POST['kkTerdampak'] ?? 0;
+        $kerusakan = $_POST['tingkatKerusakan'] ?? 'Ringan';
 
-    if ($role !== 'head' && $disaster['submitted_by'] != $userId) {
-        echo json_encode(['success' => false, 'message' => 'Access denied']);
-        exit;
-    }
-
-    // SQL DIPERBARUI: Tambahkan 'keterangan = ?'
-    $sql = "UPDATE disasters SET 
-                jenisBencana = ?, 
+        // LOGIKA UTAMA: Reset status ke 'pending', hapus validated_at, hapus reject_reason
+        $sql = "UPDATE disasters SET 
                 lokasi = ?, 
+                disaster_date = ?, 
                 jiwaTerdampak = ?, 
                 kkTerdampak = ?, 
                 tingkatKerusakan = ?, 
-                disaster_date = ?,
-                keterangan = ?
-            WHERE id = ?";
-    
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([
-        $jenisBencana,
-        $lokasi,
-        $jiwaTerdampak,
-        $kkTerdampak,
-        $tingkatKerusakan,
-        $disasterDate,
-        $keterangan, // Tambahkan di sini
-        $id
-    ]);
+                keterangan = ?,
+                status = 'pending', 
+                validated_at = NULL,
+                reject_reason = NULL 
+                WHERE id = ?";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$lokasi, $disasterDate, $jiwa, $kk, $kerusakan, $keterangan, $id]);
 
-    echo json_encode(['success' => true, 'message' => 'Laporan berhasil diperbarui']);
-} catch (PDOException $e) {
-    echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
+    } else {
+        // Insiden
+        $sql = "UPDATE disasters SET 
+                lokasi = ?, 
+                disaster_date = ?, 
+                keterangan = ?,
+                status = 'pending',
+                validated_at = NULL,
+                reject_reason = NULL
+                WHERE id = ?";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$lokasi, $disasterDate, $keterangan, $id]);
+    }
+
+    $pdo->commit();
+    echo json_encode(['success' => true, 'message' => 'Laporan diperbarui. Status kembali menjadi Pending menunggu validasi.']);
+
+} catch (Exception $e) {
+    $pdo->rollBack();
+    echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
 }
 ?>

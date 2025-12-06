@@ -2,6 +2,7 @@
 session_start();
 require_once 'config.php';
 
+// Cek Keamanan: Hanya Role 'head' yang boleh akses
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'head') {
     header('Location: index.php');
     exit;
@@ -14,7 +15,8 @@ $username = $_SESSION['username'] ?? '';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Validasi Laporan Bencana - BPBD</title>
+    <title>Validasi Laporan - BPBD</title>
+    <!-- CSS Dependencies -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.datatables.net/2.0.8/css/dataTables.bootstrap5.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -24,6 +26,7 @@ $username = $_SESSION['username'] ?? '';
 <body class="logged-in">
     <div class="p-4 p-md-5">
         <div class="container">
+            <!-- Header Halaman -->
             <header class="bpbd-header shadow-sm rounded p-4 mb-4">
                 <div class="d-flex justify-content-between align-items-center">
                     <div class="d-flex align-items-center">
@@ -37,27 +40,16 @@ $username = $_SESSION['username'] ?? '';
                         </div>
                     </div>
                     <div>
-                        <a href="index.php" class="btn btn-bpbd-primary me-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left me-1" viewBox="0 0 16 16">
-                                <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
-                            </svg>
-                            Kembali ke Dashboard
-                        </a>
-                        <button id="logout-btn" class="btn btn-bpbd-secondary">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-box-arrow-right me-1" viewBox="0 0 16 16">
-                                <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z"/>
-                                <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"/>
-                            </svg>
-                            Logout
-                        </button>
+                        <a href="index.php" class="btn btn-bpbd-primary me-2">Kembali ke Dashboard</a>
+                        <button id="logout-btn" class="btn btn-bpbd-secondary" onclick="window.location.href='logout.php'">Logout</button>
                     </div>
                 </div>
             </header>
 
+            <!-- Kartu Statistik -->
             <div class="bg-white p-4 rounded shadow-sm mb-4">
-                <h2 class="h5 fw-semibold mb-3 text-dark border-bottom pb-2">Statistik Laporan Bulan Ini (Semua Kategori)</h2>
+                <h2 class="h5 fw-semibold mb-3 text-dark border-bottom pb-2">Statistik Laporan Bulan Ini</h2>
                 <div class="mb-4">
-                    <p class="text-muted">Statistik ini mencakup Bencana Alam dan Insiden Darurat yang dilaporkan bulan ini.</p>
                     <div class="row g-3">
                         <div class="col-md-4">
                             <div class="card bg-light">
@@ -86,14 +78,14 @@ $username = $_SESSION['username'] ?? '';
                     </div>
                 </div>
 
+                <!-- Tombol Aksi Massal & Filter -->
                 <div class="d-flex gap-2 mb-4">
-                    <button id="approve-all-btn" class="btn btn-success">Setujui Laporan Terpilih</button>
-                    <button id="reject-all-btn" class="btn btn-danger">Tolak Laporan Terpilih</button>
+                    <button id="approve-all-btn" class="btn btn-success" disabled onclick="approveAllReports()">Setujui Laporan Terpilih</button>
+                    <button id="reject-all-btn" class="btn btn-danger" disabled onclick="rejectAllReports()">Tolak Laporan Terpilih</button>
                 </div>
                 
                 <div class="row g-3 mb-3">
                     <div class="col-md-4">
-                        <label for="filter-status" class="form-label">Filter berdasarkan Status (Semua Tabel)</label>
                         <select id="filter-status" class="form-select">
                             <option value="">Semua Status</option>
                             <option value="Menunggu">Menunggu</option>
@@ -102,7 +94,6 @@ $username = $_SESSION['username'] ?? '';
                         </select>
                     </div>
                     <div class="col-md-4">
-                        <label for="filter-jenis" class="form-label">Filter Jenis Bencana (Tabel Bencana)</label>
                         <select id="filter-jenis" class="form-select">
                             <option value="">Semua Jenis Bencana</option>
                             <option value="Banjir">Banjir</option>
@@ -114,75 +105,393 @@ $username = $_SESSION['username'] ?? '';
                 </div>
             </div>
 
+            <!-- Tabel Bencana (Dampak Luas) -->
             <div class="bg-white p-4 rounded shadow-sm mb-4">
                 <h2 class="h5 fw-semibold mb-3 text-dark border-bottom pb-2">Validasi Laporan Bencana (Dampak Luas)</h2>
                 <div class="table-responsive">
                    <table id="pending-reports-table" class="table table-hover align-middle">
                         <thead class="table-light">
                             <tr>
-                                <th scope="col"><input type="checkbox" id="select-all-bencana"></th>
+                                <th scope="col" width="30"><input type="checkbox" id="select-all-bencana"></th>
                                 <th scope="col">Jenis Bencana</th>
                                 <th scope="col">Lokasi</th>
                                 <th scope="col">Terdampak</th>
                                 <th scope="col">Kerusakan</th>
                                 <th scope="col">Pengirim</th>
-                                <th scope="col">Tanggal Lapor</th>
+                                <th scope="col">Tanggal</th>
                                 <th scope="col">Foto</th>
                                 <th scope="col">Status</th>
+                                <th scope="col">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody id="pending-reports-body">
-                            </tbody>
+                        <tbody id="pending-reports-body"></tbody>
                     </table>
                 </div>
             </div>
             
+            <!-- Tabel Insiden (Darurat) -->
             <div class="bg-white p-4 rounded shadow-sm">
                 <h2 class="h5 fw-semibold mb-3 text-dark border-bottom pb-2">Validasi Laporan Insiden Darurat</h2>
                 <div class="table-responsive">
                    <table id="insiden-reports-table" class="table table-hover align-middle">
                         <thead class="table-light">
                             <tr>
-                                <th scope="col"><input type="checkbox" id="select-all-insiden"></th>
+                                <th scope="col" width="30"><input type="checkbox" id="select-all-insiden"></th>
                                 <th scope="col">Jenis Insiden</th>
                                 <th scope="col">Lokasi</th>
                                 <th scope="col">Keterangan</th>
                                 <th scope="col">Pengirim</th>
-                                <th scope="col">Tanggal Lapor</th>
+                                <th scope="col">Tanggal</th>
                                 <th scope="col">Foto</th>
                                 <th scope="col">Status</th>
+                                <th scope="col">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody id="insiden-reports-body">
-                            </tbody>
+                        <tbody id="insiden-reports-body"></tbody>
                     </table>
                 </div>
             </div>
-
         </div>
     </div>
 
-    <div class="modal fade" id="photo-modal" tabindex="-1" aria-labelledby="photoModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
+    <!-- Modal Tolak Laporan (Popup Alasan) -->
+    <div class="modal fade" id="rejectModal" tabindex="-1">
+        <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="photoModalLabel">Foto Bencana</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h5 class="modal-title">Tolak Laporan</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body text-center">
-                    <img id="photo-modal-image" src="" alt="Foto bencana" class="img-fluid">
+                <div class="modal-body">
+                    <input type="hidden" id="rejectId">
+                    <div class="mb-3">
+                        <label class="form-label">Alasan Penolakan</label>
+                        <textarea class="form-control" id="rejectReason" rows="3" required placeholder="Contoh: Data kurang lengkap, foto buram..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-danger" onclick="submitReject()">Kirim Penolakan</button>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Modal Foto (Popup Gambar) -->
+    <div class="modal fade" id="photo-modal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Foto Dokumentasi</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img id="photo-modal-image" src="" alt="Foto" class="img-fluid">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script JS Libraries -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.datatables.net/2.0.8/js/dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/2.0.8/js/dataTables.bootstrap5.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
-    <script src="validate.js"></script>
+    <!-- LOGIKA JAVASCRIPT GABUNGAN -->
+    <script>
+        // --- VARIABLE GLOBAL ---
+        let tableBencana, tableInsiden;
 
+        // --- 1. SAAT HALAMAN DIMUAT ---
+        document.addEventListener('DOMContentLoaded', function() {
+            loadData(); // Muat data dari server
+
+            // Listener Filter
+            document.getElementById('filter-status').addEventListener('change', applyFilters);
+            document.getElementById('filter-jenis').addEventListener('change', applyFilters);
+
+            // Listener Select All
+            document.getElementById('select-all-bencana').addEventListener('change', function() { handleSelectAll('#pending-reports-table', this); });
+            document.getElementById('select-all-insiden').addEventListener('change', function() { handleSelectAll('#insiden-reports-table', this); });
+
+            // Listener Checkbox Individual (Event Delegation)
+            document.addEventListener('change', function(e) {
+                if (e.target.classList.contains('report-checkbox')) updateButtonState();
+            });
+        });
+
+        // --- 2. FUNGSI LOAD DATA ---
+        function loadData() {
+            fetch('get_disasters.php')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        processData(data.data);
+                    } else {
+                        Swal.fire('Error', data.message, 'error');
+                    }
+                })
+                .catch(err => console.error(err));
+        }
+
+        function processData(allData) {
+            // Filter Data Bulan Ini
+            const now = new Date();
+            const monthlyData = allData.filter(d => {
+                const date = new Date(d.created_at);
+                return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+            });
+
+            // Update Statistik Angka
+            document.getElementById('pending-count').innerText = monthlyData.filter(r => r.status === 'pending').length;
+            document.getElementById('approved-count').innerText = monthlyData.filter(r => r.status === 'approved').length;
+            document.getElementById('rejected-count').innerText = monthlyData.filter(r => r.status === 'rejected').length;
+
+            // Pisahkan Data Bencana & Insiden
+            const bencanaList = monthlyData.filter(d => d.kategori_laporan === 'bencana' || !d.kategori_laporan);
+            const insidenList = monthlyData.filter(d => d.kategori_laporan === 'insiden');
+
+            // Render Tabel
+            renderTable('#pending-reports-table', '#pending-reports-body', bencanaList, 'bencana');
+            renderTable('#insiden-reports-table', '#insiden-reports-body', insidenList, 'insiden');
+        }
+
+        // --- 3. RENDER TABEL ---
+        function renderTable(tableId, tbodyId, data, type) {
+            // Hancurkan DataTable lama jika ada
+            if ($.fn.DataTable.isDataTable(tableId)) {
+                $(tableId).DataTable().destroy();
+            }
+
+            const tbody = document.querySelector(tbodyId);
+            tbody.innerHTML = '';
+
+            if (data.length === 0) {
+                const span = type === 'bencana' ? 10 : 9;
+                tbody.innerHTML = `<tr><td colspan="${span}" class="text-center text-muted py-3">Tidak ada data.</td></tr>`;
+                return;
+            }
+
+            data.forEach(item => {
+                // Elemen HTML Baris
+                const isPending = item.status === 'pending';
+                const checkbox = isPending ? `<input type="checkbox" class="report-checkbox" value="${item.id}">` : '-';
+                
+                let statusBadge = `<span class="badge bg-warning text-dark">Menunggu</span>`;
+                if(item.status === 'approved') statusBadge = `<span class="badge bg-success">Disetujui</span>`;
+                if(item.status === 'rejected') statusBadge = `<span class="badge bg-danger">Ditolak</span>`;
+
+                let photoHtml = '<span class="text-muted small">No Img</span>';
+                if (item.photos && item.photos.length > 0) {
+                    photoHtml = `<img src="${item.photos[0].file_path}" class="img-thumbnail" style="height:40px; cursor:pointer;" onclick="showPhoto('${item.photos[0].file_path}')">`;
+                }
+
+                let actions = '-';
+                if(isPending) {
+                    actions = `
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-success" onclick="approveSingle(${item.id})" title="Setujui">✓</button>
+                            <button class="btn btn-danger" onclick="openRejectModal(${item.id})" title="Tolak">✕</button>
+                        </div>
+                    `;
+                }
+
+                const dateStr = new Date(item.created_at).toLocaleDateString('id-ID');
+
+                // Template Baris (Bencana vs Insiden)
+                let row = '';
+                if(type === 'bencana') {
+                    row = `<tr>
+                        <td class="text-center">${checkbox}</td>
+                        <td>${item.jenisBencana}</td>
+                        <td>${item.lokasi}</td>
+                        <td><small>${item.jiwaTerdampak} Jiwa / ${item.kkTerdampak} KK</small></td>
+                        <td>${item.tingkatKerusakan}</td>
+                        <td>${item.submitted_by_name || 'User'}</td>
+                        <td>${dateStr}</td>
+                        <td class="text-center">${photoHtml}</td>
+                        <td class="text-center">${statusBadge}</td>
+                        <td class="text-center">${actions}</td>
+                    </tr>`;
+                } else {
+                    row = `<tr>
+                        <td class="text-center">${checkbox}</td>
+                        <td>${item.jenisBencana}</td>
+                        <td>${item.lokasi}</td>
+                        <td><small>${item.keterangan || '-'}</small></td>
+                        <td>${item.submitted_by_name || 'User'}</td>
+                        <td>${dateStr}</td>
+                        <td class="text-center">${photoHtml}</td>
+                        <td class="text-center">${statusBadge}</td>
+                        <td class="text-center">${actions}</td>
+                    </tr>`;
+                }
+                tbody.innerHTML += row;
+            });
+
+            // Inisialisasi DataTable Baru
+            const targets = type === 'bencana' ? [0,3,4,7,9] : [0,2,3,6,8];
+            const table = $(tableId).DataTable({
+                pageLength: 5,
+                order: [[type==='bencana'?6:5, 'desc']],
+                columnDefs: [{ orderable: false, targets: targets }]
+            });
+
+            if(type === 'bencana') tableBencana = table;
+            else tableInsiden = table;
+        }
+
+        // --- 4. FUNGSI AKSI (APPROVE / REJECT) ---
+        
+        function approveSingle(id) {
+            Swal.fire({
+                title: 'Setujui Laporan?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, Setujui',
+                confirmButtonColor: '#198754'
+            }).then(res => {
+                if(res.isConfirmed) sendRequest(id, 'approved');
+            });
+        }
+
+        function openRejectModal(id) {
+            document.getElementById('rejectId').value = id;
+            document.getElementById('rejectReason').value = '';
+            new bootstrap.Modal('#rejectModal').show();
+        }
+
+        function submitReject() {
+            const id = document.getElementById('rejectId').value;
+            const reason = document.getElementById('rejectReason').value;
+            if(!reason) return Swal.fire('Error', 'Alasan wajib diisi!', 'warning');
+
+            sendRequest(id, 'rejected', reason);
+            // Tutup modal manual
+            const modalEl = document.getElementById('rejectModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            modal.hide();
+        }
+
+        function sendRequest(id, action, reason = null) {
+            const formData = new FormData();
+            formData.append('id', id);
+            formData.append('action', action);
+            if(reason) formData.append('reason', reason);
+
+            fetch('validation_process.php', { method: 'POST', body: formData })
+                .then(r => r.json())
+                .then(data => {
+                    if(data.success) {
+                        Swal.fire('Sukses', data.message, 'success');
+                        loadData(); // Reload data
+                    } else {
+                        Swal.fire('Gagal', data.message, 'error');
+                    }
+                })
+                .catch(() => Swal.fire('Error', 'Gagal koneksi ke server', 'error'));
+        }
+
+        // --- 5. FUNGSI AKSI MASSAL (BULK) ---
+        
+        function approveAllReports() { processBulk('approved', 'Setujui'); }
+        
+        function rejectAllReports() {
+            Swal.fire({
+                title: 'Tolak Banyak Laporan',
+                input: 'textarea',
+                inputPlaceholder: 'Alasan penolakan untuk semua...',
+                showCancelButton: true,
+                confirmButtonText: 'Tolak Semua',
+                confirmButtonColor: '#dc3545'
+            }).then(res => {
+                if(res.isConfirmed && res.value) processBulk('rejected', 'Tolak', res.value);
+            });
+        }
+
+        async function processBulk(action, label, reason = null) {
+            const checked = document.querySelectorAll('.report-checkbox:checked');
+            if(checked.length === 0) return;
+
+            const ids = Array.from(checked).map(cb => cb.value);
+            
+            // Konfirmasi
+            const confirm = await Swal.fire({
+                title: `Konfirmasi ${label} ${ids.length} Laporan?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, Lanjutkan'
+            });
+            if(!confirm.isConfirmed) return;
+
+            Swal.fire({ title: 'Memproses...', didOpen: () => Swal.showLoading() });
+
+            let success = 0, fail = 0;
+            for(const id of ids) {
+                const formData = new FormData();
+                formData.append('id', id);
+                formData.append('action', action);
+                if(reason) formData.append('reason', reason);
+
+                try {
+                    const res = await fetch('validation_process.php', { method: 'POST', body: formData });
+                    const json = await res.json();
+                    if(json.success) success++; else fail++;
+                } catch(e) { fail++; }
+            }
+
+            Swal.fire('Selesai', `Berhasil: ${success}, Gagal: ${fail}`, fail===0 ? 'success':'warning');
+            loadData();
+            document.querySelectorAll('.report-checkbox').forEach(cb => cb.checked = false); // Uncheck all
+            updateButtonState();
+        }
+
+        // --- 6. UTILS (HELPER) ---
+
+        function handleSelectAll(tableSelector, sourceCb) {
+            document.querySelectorAll(`${tableSelector} .report-checkbox`).forEach(cb => {
+                cb.checked = sourceCb.checked;
+            });
+            updateButtonState();
+        }
+
+        function updateButtonState() {
+            const count = document.querySelectorAll('.report-checkbox:checked').length;
+            const btnApprove = document.getElementById('approve-all-btn');
+            const btnReject = document.getElementById('reject-all-btn');
+            
+            if(count > 0) {
+                btnApprove.disabled = false;
+                btnReject.disabled = false;
+                btnApprove.textContent = `Setujui (${count})`;
+                btnReject.textContent = `Tolak (${count})`;
+            } else {
+                btnApprove.disabled = true;
+                btnReject.disabled = true;
+                btnApprove.textContent = `Setujui Laporan Terpilih`;
+                btnReject.textContent = `Tolak Laporan Terpilih`;
+            }
+        }
+
+        function applyFilters() {
+            const status = document.getElementById('filter-status').value;
+            const jenis = document.getElementById('filter-jenis').value;
+
+            if(tableBencana) {
+                tableBencana.column(8).search(status).draw();
+                tableBencana.column(1).search(jenis).draw();
+            }
+            if(tableInsiden) {
+                tableInsiden.column(7).search(status).draw();
+            }
+        }
+
+        function showPhoto(src) {
+            document.getElementById('photo-modal-image').src = src;
+            new bootstrap.Modal('#photo-modal').show();
+        }
+    </script>
 </body>
 </html>
