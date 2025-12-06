@@ -11,7 +11,14 @@ const weights = {
 // 2. Definisikan Skor Kuantifikasi untuk Kriteria Kualitatif
 const quantificationScores = {
     kerusakan: { 'Ringan': 1, 'Sedang': 2, 'Berat': 3 },
-    jenis: { 'Angin Puting Beliung': 1, 'Banjir': 2, 'Tanah Longsor': 3, 'Gempa Bumi': 4 }
+    jenis: {
+        'Angin Puting Beliung': 1,
+        'Banjir': 2,
+        'Kebakaran': 2, // KATEGORI BARU (Skor setara banjir)
+        'Tanah Longsor': 3,
+        'Kebakaran Hutan': 3, // KATEGORI BARU (Skor setara longsor)
+        'Gempa Bumi': 4
+    }
 };
 
 // 3. Data will be loaded from database
@@ -32,6 +39,12 @@ function formatDate(dateString) {
     const month = monthNames[date.getMonth()];
     const year = date.getFullYear();
     return `${day} ${month} ${year}`;
+}
+
+// Helper to get Indonesian Month Name from index (0-11)
+function getIndonesianMonthName(monthIndex) {
+    const monthNames = ["JANUARI", "FEBRUARI", "MARET", "APRIL", "MEI", "JUNI", "JULI", "AGUSTUS", "SEPTEMBER", "OKTOBER", "NOVEMBER", "DESEMBER"];
+    return monthNames[monthIndex];
 }
 
 // --- FUNGSI UTAMA APLIKASI ---
@@ -311,7 +324,65 @@ function handleLogin(event) {
 }
 
 /**
- * [FUNGSI DIPERBARUI] Load disaster data from server
+ * Filter data berdasarkan bulan dan tahun yang dipilih
+ * @param {Array} data - Semua data
+ * @param {string} filterValue - Format YYYY-MM
+ */
+function filterDataByMonth(data, filterValue) {
+    if (!filterValue) return data;
+    return data.filter(item => {
+        // Asumsi item.disaster_date format 'YYYY-MM-DD'
+        return item.disaster_date && item.disaster_date.startsWith(filterValue);
+    });
+}
+
+/**
+ * Render tabel dengan filter yang diterapkan
+ */
+function filterAndRenderReports() {
+    const filterValue = document.getElementById('period-filter').value;
+    const filteredData = filterDataByMonth(allReportData, filterValue);
+
+    // 1. Pisahkan data berdasarkan kategori
+    const bencanaData = filteredData.filter(d => d.kategori_laporan === 'bencana' || !d.kategori_laporan);
+    const insidenData = filteredData.filter(d => d.kategori_laporan === 'insiden');
+
+    // 2. Hancurkan DataTable yang ada
+    if ($.fn.DataTable.isDataTable('#disaster-report-table')) {
+        $('#disaster-report-table').DataTable().destroy();
+    }
+    if ($.fn.DataTable.isDataTable('#insiden-report-table')) {
+        $('#insiden-report-table').DataTable().destroy();
+    }
+
+    // 3. Generate HTML untuk setiap tabel
+    generateBencanaTable(bencanaData);
+    generateInsidenTable(insidenData);
+
+    // Penundaan 10ms untuk memastikan DOM 100% siap
+    setTimeout(function() {
+        // HANYA inisialisasi jika ada data bencana
+        if (bencanaData.length > 0) {
+            $('#disaster-report-table').DataTable({
+                "pageLength": 5, "lengthMenu": [3, 5], "responsive": true, "order": [[0, "asc"]],
+                "columnDefs": [ { "orderable": false, "targets": [1, 2, 3, 4, 5, 7, 8] } ],
+                "language": { "search": "Cari:", "lengthMenu": "Tampilkan _MENU_ data", "info": "Menampilkan _START_ sampai _END_ dari _TOTAL_ data", "infoEmpty": "Tidak ada data", "infoFiltered": "(difilter dari _MAX_ total data)", "paginate": { "first": "Pertama", "last": "Terakhir", "next": "Berikutnya", "previous": "Sebelumnya" } }
+            });
+        }
+        
+        // HANYA inisialisasi jika ada data insiden
+        if (insidenData.length > 0) {
+            $('#insiden-report-table').DataTable({
+                "pageLength": 5, "lengthMenu": [3, 5], "responsive": true, "order": [[3, "desc"]],
+                "columnDefs": [ { "orderable": false, "targets": [0, 1, 2, 4, 5] } ],
+                "language": { "search": "Cari:", "lengthMenu": "Tampilkan _MENU_ data", "info": "Menampilkan _START_ sampai _END_ dari _TOTAL_ data", "infoEmpty": "Tidak ada data", "infoFiltered": "(difilter dari _MAX_ total data)", "paginate": { "first": "Pertama", "last": "Terakhir", "next": "Berikutnya", "previous": "Sebelumnya" } }
+            });
+        }
+    }, 10);
+}
+
+/**
+ * Load disaster data from server
  */
 function loadAndDisplayAllReports() {
     fetch('get_disasters.php')
@@ -319,44 +390,7 @@ function loadAndDisplayAllReports() {
         .then(data => {
             if (data.success) {
                 allReportData = data.data; // Simpan semua data di global
-
-                // 1. Pisahkan data berdasarkan kategori
-                const bencanaData = allReportData.filter(d => d.kategori_laporan === 'bencana' || !d.kategori_laporan);
-                const insidenData = allReportData.filter(d => d.kategori_laporan === 'insiden');
-
-                // 2. Hancurkan DataTable yang ada
-                if ($.fn.DataTable.isDataTable('#disaster-report-table')) {
-                    $('#disaster-report-table').DataTable().destroy();
-                }
-                if ($.fn.DataTable.isDataTable('#insiden-report-table')) {
-                    $('#insiden-report-table').DataTable().destroy();
-                }
-
-                // 3. Generate HTML untuk setiap tabel
-                generateBencanaTable(bencanaData);
-                generateInsidenTable(insidenData);
-
-                // Penundaan 10ms untuk memastikan DOM 100% siap
-                setTimeout(function() {
-                    // HANYA inisialisasi jika ada data bencana
-                    if (bencanaData.length > 0) {
-                        $('#disaster-report-table').DataTable({
-                            "pageLength": 5, "lengthMenu": [3, 5], "responsive": true, "order": [[0, "asc"]],
-                            "columnDefs": [ { "orderable": false, "targets": [1, 2, 3, 4, 5, 7, 8] } ],
-                            "language": { "search": "Cari:", "lengthMenu": "Tampilkan _MENU_ data", "info": "Menampilkan _START_ sampai _END_ dari _TOTAL_ data", "infoEmpty": "Tidak ada data", "infoFiltered": "(difilter dari _MAX_ total data)", "paginate": { "first": "Pertama", "last": "Terakhir", "next": "Berikutnya", "previous": "Sebelumnya" } }
-                        });
-                    }
-                    
-                    // HANYA inisialisasi jika ada data insiden
-                    if (insidenData.length > 0) {
-                        $('#insiden-report-table').DataTable({
-                            "pageLength": 5, "lengthMenu": [3, 5], "responsive": true, "order": [[3, "desc"]],
-                            "columnDefs": [ { "orderable": false, "targets": [0, 1, 2, 4, 5] } ],
-                            "language": { "search": "Cari:", "lengthMenu": "Tampilkan _MENU_ data", "info": "Menampilkan _START_ sampai _END_ dari _TOTAL_ data", "infoEmpty": "Tidak ada data", "infoFiltered": "(difilter dari _MAX_ total data)", "paginate": { "first": "Pertama", "last": "Terakhir", "next": "Berikutnya", "previous": "Sebelumnya" } }
-                        });
-                    }
-                }, 10); 
-
+                filterAndRenderReports(); // Tampilkan dengan filter default
             } else {
                 console.error('Error loading data:', data.message);
             }
@@ -399,38 +433,50 @@ function handleLogout() {
  * [FUNGSI PRINT 1] Mencetak laporan BENCANA (SAW)
  */
 function handlePrintReport() {
-    const bencanaData = allReportData.filter(d => d.kategori_laporan === 'bencana' || !d.kategori_laporan);
+    const filterValue = document.getElementById('period-filter').value;
+    const filteredData = filterDataByMonth(allReportData, filterValue);
+    
+    const bencanaData = filteredData.filter(d => d.kategori_laporan === 'bencana' || !d.kategori_laporan);
     const rankedData = runSAW(bencanaData);
     
     const previewContent = document.getElementById('preview-content');
+    
+    // Tentukan Judul Periode
+    let periodText = "Semua Waktu";
+    if (filterValue) {
+        const [year, month] = filterValue.split('-');
+        periodText = `Bulan ${getIndonesianMonthName(parseInt(month) - 1)} ${year}`;
+    }
     const today = new Date();
     const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
-    const month = monthNames[today.getMonth()];
-    const year = today.getFullYear();
-    const reportDate = `${today.getDate()} ${month} ${year}`;
+    const reportDate = `${today.getDate()} ${monthNames[today.getMonth()]} ${today.getFullYear()}`;
 
     let tableRows = '';
-    rankedData.forEach((item, index) => {
-        let photoCell = '<span style="font-size: 10px; color: #666;">Tidak ada foto</span>';
-        if (item.photos && item.photos.length > 0) {
-            const imageUrl = new URL(item.photos[0].file_path, window.location.href).href;
-            photoCell = `<img src="${imageUrl}" alt="Foto Bencana" style="width: 100%; height: 100%; object-fit: cover;">`;
-        }
+    if (rankedData.length === 0) {
+        tableRows = '<tr><td colspan="9" style="text-align:center; padding: 20px;">Tidak ada data laporan untuk periode ini.</td></tr>';
+    } else {
+        rankedData.forEach((item, index) => {
+            let photoCell = '<span style="font-size: 10px; color: #666;">Tidak ada foto</span>';
+            if (item.photos && item.photos.length > 0) {
+                const imageUrl = new URL(item.photos[0].file_path, window.location.href).href;
+                photoCell = `<img src="${imageUrl}" alt="Foto Bencana" style="width: 100%; height: 100%; object-fit: cover;">`;
+            }
 
-        tableRows += `
-            <tr style="border-bottom: 1px solid #ddd; page-break-inside: avoid;">
-                <td style="padding: 8px; text-align: center; vertical-align: middle;">${index + 1}</td>
-                <td style="padding: 8px; vertical-align: middle;">${item.jenisBencana}</td>
-                <td style="padding: 8px; vertical-align: middle;">${item.lokasi}</td>
-                <td style="padding: 8px; text-align: center; vertical-align: middle;">${formatDate(item.disaster_date)}</td>
-                <td style="padding: 8px; text-align: center; vertical-align: middle;">${item.jiwaTerdampak}</td>
-                <td style="padding: 8px; text-align: center; vertical-align: middle;">${item.kkTerdampak}</td>
-                <td style="padding: 8px; vertical-align: middle;">${item.tingkatKerusakan}</td>
-                <td style="padding: 8px; font-weight: bold; vertical-align: middle;">${item.finalScore.toFixed(4)}</td>
-                <td style="padding: 0; text-align: center; vertical-align: middle; width: 120px; height: 120px;">${photoCell}</td>
-            </tr>
-        `;
-    });
+            tableRows += `
+                <tr style="border-bottom: 1px solid #ddd; page-break-inside: avoid;">
+                    <td style="padding: 8px; text-align: center; vertical-align: middle;">${index + 1}</td>
+                    <td style="padding: 8px; vertical-align: middle;">${item.jenisBencana}</td>
+                    <td style="padding: 8px; vertical-align: middle;">${item.lokasi}</td>
+                    <td style="padding: 8px; text-align: center; vertical-align: middle;">${formatDate(item.disaster_date)}</td>
+                    <td style="padding: 8px; text-align: center; vertical-align: middle;">${item.jiwaTerdampak}</td>
+                    <td style="padding: 8px; text-align: center; vertical-align: middle;">${item.kkTerdampak}</td>
+                    <td style="padding: 8px; vertical-align: middle;">${item.tingkatKerusakan}</td>
+                    <td style="padding: 8px; font-weight: bold; vertical-align: middle;">${item.finalScore.toFixed(4)}</td>
+                    <td style="padding: 0; text-align: center; vertical-align: middle; width: 120px; height: 120px;">${photoCell}</td>
+                </tr>
+            `;
+        });
+    }
 
     const printContent = `
         <div style="font-family: Arial, sans-serif; width: 100%; transform: scale(0.8); transform-origin: top left;">
@@ -440,7 +486,7 @@ function handlePrintReport() {
                 <p style="margin: 5px 0 0; font-size: 12px;">Alamat: Jl. Instansi No. 123, Tondano, Minahasa, Sulawesi Utara</p>
             </div>
             <h1 style="text-align: center; font-size: 18px; text-decoration: underline; margin-bottom: 20px;">LAPORAN REKAPITULASI DAN PRIORITAS DAMPAK BENCANA</h1>
-            <p style="text-align: center; margin-top: -10px; margin-bottom: 30px;">Periode: Bulan ${month} ${year}</p>
+            <p style="text-align: center; margin-top: -10px; margin-bottom: 30px;">Periode: ${periodText}</p>
             <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
                 <thead>
                     <tr style="background-color: #f2f2f2; text-align: left;">
@@ -479,37 +525,49 @@ function handlePrintReport() {
 }
 
 /**
- * [FUNGSI BARU - PRINT 2] Mencetak laporan INSIDEN (Kronologis)
+ * [FUNGSI PRINT 2] Mencetak laporan INSIDEN (Kronologis)
  */
 function handlePrintInsidenReport() {
-    const insidenData = allReportData.filter(d => d.kategori_laporan === 'insiden');
+    const filterValue = document.getElementById('period-filter').value;
+    const filteredData = filterDataByMonth(allReportData, filterValue);
+
+    const insidenData = filteredData.filter(d => d.kategori_laporan === 'insiden');
     insidenData.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)); // Sortir terbaru dulu
     
     const previewContent = document.getElementById('preview-content');
+
+    // Tentukan Judul Periode
+    let periodText = "Semua Waktu";
+    if (filterValue) {
+        const [year, month] = filterValue.split('-');
+        periodText = `Bulan ${getIndonesianMonthName(parseInt(month) - 1)} ${year}`;
+    }
     const today = new Date();
     const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
-    const month = monthNames[today.getMonth()];
-    const year = today.getFullYear();
-    const reportDate = `${today.getDate()} ${month} ${year}`;
+    const reportDate = `${today.getDate()} ${monthNames[today.getMonth()]} ${today.getFullYear()}`;
 
     let tableRows = '';
-    insidenData.forEach((item, index) => {
-        let photoCell = '<span style="font-size: 10px; color: #666;">Tidak ada foto</span>';
-        if (item.photos && item.photos.length > 0) {
-            const imageUrl = new URL(item.photos[0].file_path, window.location.href).href;
-            photoCell = `<img src="${imageUrl}" alt="Foto Insiden" style="width: 100%; height: 100%; object-fit: cover;">`;
-        }
+    if (insidenData.length === 0) {
+        tableRows = '<tr><td colspan="5" style="text-align:center; padding: 20px;">Tidak ada data laporan insiden untuk periode ini.</td></tr>';
+    } else {
+        insidenData.forEach((item, index) => {
+            let photoCell = '<span style="font-size: 10px; color: #666;">Tidak ada foto</span>';
+            if (item.photos && item.photos.length > 0) {
+                const imageUrl = new URL(item.photos[0].file_path, window.location.href).href;
+                photoCell = `<img src="${imageUrl}" alt="Foto Insiden" style="width: 100%; height: 100%; object-fit: cover;">`;
+            }
 
-        tableRows += `
-            <tr style="border-bottom: 1px solid #ddd; page-break-inside: avoid;">
-                <td style="padding: 8px; vertical-align: middle;">${item.jenisBencana}</td>
-                <td style="padding: 8px; vertical-align: middle;">${item.lokasi}</td>
-                <td style="padding: 8px; vertical-align: middle; font-size: 11px;">${item.keterangan || 'N/A'}</td>
-                <td style="padding: 8px; text-align: center; vertical-align: middle;">${formatDate(item.disaster_date)}</td>
-                <td style="padding: 0; text-align: center; vertical-align: middle; width: 120px; height: 120px;">${photoCell}</td>
-            </tr>
-        `;
-    });
+            tableRows += `
+                <tr style="border-bottom: 1px solid #ddd; page-break-inside: avoid;">
+                    <td style="padding: 8px; vertical-align: middle;">${item.jenisBencana}</td>
+                    <td style="padding: 8px; vertical-align: middle;">${item.lokasi}</td>
+                    <td style="padding: 8px; vertical-align: middle; font-size: 11px;">${item.keterangan || 'N/A'}</td>
+                    <td style="padding: 8px; text-align: center; vertical-align: middle;">${formatDate(item.disaster_date)}</td>
+                    <td style="padding: 0; text-align: center; vertical-align: middle; width: 120px; height: 120px;">${photoCell}</td>
+                </tr>
+            `;
+        });
+    }
 
     const printContent = `
         <div style="font-family: Arial, sans-serif; width: 100%; transform: scale(0.8); transform-origin: top left;">
@@ -519,7 +577,7 @@ function handlePrintInsidenReport() {
                 <p style="margin: 5px 0 0; font-size: 12px;">Alamat: Jl. Instansi No. 123, Tondano, Minahasa, Sulawesi Utara</p>
             </div>
             <h1 style="text-align: center; font-size: 18px; text-decoration: underline; margin-bottom: 20px;">LAPORAN REKAPITULASI INSIDEN DARURAT</h1>
-            <p style="text-align: center; margin-top: -10px; margin-bottom: 30px;">Periode: Bulan ${month} ${year}</p>
+            <p style="text-align: center; margin-top: -10px; margin-bottom: 30px;">Periode: ${periodText}</p>
             <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
                 <thead>
                     <tr style="background-color: #f2f2f2; text-align: left;">
@@ -554,12 +612,397 @@ function handlePrintInsidenReport() {
 }
 
 /**
+ * [FUNGSI PRINT 3 - DIPERBARUI] Mencetak Laporan Kumulatif (Matrix Bulanan) Sesuai PDF
+ */
+function handlePrintCumulativeReport() {
+    const filterValue = document.getElementById('period-filter').value; // Format: YYYY-MM
+    
+    // Tentukan Tahun Laporan (default tahun sekarang jika filter kosong)
+    let selectedYear = new Date().getFullYear();
+    if (filterValue) {
+        selectedYear = filterValue.split('-')[0];
+    }
+
+    // Filter data hanya untuk tahun yang dipilih
+    const yearlyData = allReportData.filter(item => {
+        if (!item.disaster_date) return false;
+        return item.disaster_date.startsWith(selectedYear);
+    });
+
+    // Struktur Data untuk Matrix
+    const months = [
+        "JANUARI", "FEBRUARI", "MARET", "APRIL", "MEI", "JUNI",
+        "JULI", "AGUSTUS", "SEPTEMBER", "OKTOBER", "NOVEMBER", "DESEMBER"
+    ];
+
+    // Kolom Bencana sesuai PDF (Page 1)
+    // Mapping: Kunci Database => Judul Kolom di Laporan
+    const disasterColumns = [
+        { db: 'Angin Puting Beliung', label: 'ANGIN PUTTING<br>BELIUNG' },
+        { db: 'Pohon Tumbang', label: 'POHON<br>TUMBANG' },
+        { db: 'Tanah Longsor', label: 'LONGSOR' },
+        { db: 'Kebakaran', label: 'KEBAKARAN' },
+        { db: 'Kebakaran Hutan', label: 'KARHUTLAH' },
+        { db: 'Orang Hilang', label: 'ORANG<br>HILANG' },
+        { db: 'Banjir', label: 'BANJIR' },
+        { db: 'Gempa Bumi', label: 'GEMPA BUMI' }
+    ];
+
+    // Inisialisasi Matrix Data (12 bulan)
+    // stats[monthIndex] = { 'Angin Puting Beliung': 0, 'Banjir': 0, ..., 'total': 0 }
+    const stats = {};
+    months.forEach((m, index) => {
+        stats[index] = { total: 0 };
+        disasterColumns.forEach(col => {
+            stats[index][col.db] = 0;
+        });
+    });
+
+    // Total Bawah (Per Jenis Bencana)
+    const grandTotals = { total: 0 };
+    disasterColumns.forEach(col => grandTotals[col.db] = 0);
+
+    // Isi Data Matrix
+    yearlyData.forEach(item => {
+        const date = new Date(item.disaster_date);
+        const monthIndex = date.getMonth(); // 0 - 11
+        
+        // Normalisasi nama bencana dari DB
+        let dbType = item.jenisBencana;
+        if (dbType === "Kebakaran Hutan (Karhutla)") dbType = "Kebakaran Hutan"; 
+
+        // Cek apakah jenis bencana ini ada di daftar kolom kita
+        const colExists = disasterColumns.find(col => col.db === dbType);
+        
+        if (colExists && stats[monthIndex]) {
+            stats[monthIndex][dbType]++;
+            stats[monthIndex].total++;
+            
+            grandTotals[dbType]++;
+            grandTotals.total++;
+        }
+    });
+
+    // Build Table Rows HTML
+    let tableRows = '';
+    months.forEach((monthName, index) => {
+        const rowData = stats[index];
+        
+        let colsHtml = '';
+        disasterColumns.forEach(col => {
+            const val = rowData[col.db];
+            colsHtml += `<td style="border: 1px solid #000; padding: 5px; text-align: center;">${val > 0 ? val : ''}</td>`;
+        });
+
+        tableRows += `
+            <tr>
+                <td style="border: 1px solid #000; padding: 5px; text-align: center;">${index + 1}</td>
+                <td style="border: 1px solid #000; padding: 5px; text-align: left; padding-left: 10px;">${monthName}</td>
+                ${colsHtml}
+                <td style="border: 1px solid #000; padding: 5px; text-align: center; font-weight: bold;">${rowData.total > 0 ? rowData.total : ''}</td>
+            </tr>
+        `;
+    });
+
+    // Build Grand Total Row HTML
+    let grandTotalColsHtml = '';
+    disasterColumns.forEach(col => {
+        const val = grandTotals[col.db];
+        grandTotalColsHtml += `<td style="border: 1px solid #000; padding: 5px; text-align: center; font-weight: bold;">${val > 0 ? val : ''}</td>`;
+    });
+
+    const grandTotalRow = `
+        <tr style="background-color: #f0f0f0;">
+            <td colspan="2" style="border: 1px solid #000; padding: 5px; text-align: center; font-weight: bold;">TOTAL</td>
+            ${grandTotalColsHtml}
+            <td style="border: 1px solid #000; padding: 5px; text-align: center; font-weight: bold;">${grandTotals.total}</td>
+        </tr>
+    `;
+
+    // Tanggal untuk TTD
+    const today = new Date();
+    const monthNamesIndo = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+    const reportDateString = `${today.getDate()} ${monthNamesIndo[today.getMonth()]} ${today.getFullYear()}`;
+
+    // --- HTML LENGKAP LAPORAN ---
+    const printContent = `
+        <div style="font-family: Arial, sans-serif; width: 100%; font-size: 12px; color: #000;">
+            <!-- HEADER -->
+            <div style="text-align: center; margin-bottom: 20px;">
+                <h2 style="margin: 0; font-size: 16px; font-weight: bold;">PEMERINTAH KABUPATEN MINAHASA</h2>
+                <h2 style="margin: 0; font-size: 18px; font-weight: bold;">BADAN PENANGGULANGAN BENCANA DAERAH</h2>
+                <p style="margin: 5px 0 0; font-size: 10px;">Alamat: Kompleks Stadion Maesa Kelurahan Wewelen (Tondano)</p>
+                <p style="margin: 0; font-size: 10px;">Website: www.minahasa.go.id E-mail: pemkab.minahasa@minahasa.go.id</p>
+                <hr style="border: 1px solid #000; margin-top: 10px;">
+            </div>
+
+            <!-- TITLE -->
+            <div style="text-align: center; margin-bottom: 15px;">
+                <h3 style="margin: 0; font-size: 14px; font-weight: bold; text-decoration: underline;">REKAPITULASI DATA LAPORAN KEJADIAN BENCANA TAHUN ${selectedYear}</h3>
+            </div>
+
+            <!-- TABLE -->
+            <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+                <thead>
+                    <tr style="background-color: #e0e0e0;">
+                        <th style="border: 1px solid #000; padding: 5px; width: 30px;">NO</th>
+                        <th style="border: 1px solid #000; padding: 5px;">BULAN</th>
+                        ${disasterColumns.map(col => `<th style="border: 1px solid #000; padding: 5px; font-size: 10px;">${col.label}</th>`).join('')}
+                        <th style="border: 1px solid #000; padding: 5px;">TOTAL</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${tableRows}
+                    ${grandTotalRow}
+                </tbody>
+            </table>
+
+            <!-- SIGNATURE SECTION (FROM PDF) -->
+            <div style="margin-top: 40px; display: flex; justify-content: space-between; page-break-inside: avoid;">
+                <div style="text-align: center; width: 40%;">
+                    <p style="margin-bottom: 60px;">Mengetahui<br>Kepala Badan Penanggulangan Bencana<br>Daerah Kabupaten Minahasa</p>
+                    <p style="font-weight: bold; text-decoration: underline;">LONA O.K. WATTIE, S.STP, M.AP</p>
+                    <p>Pembina Utama Muda, IV/c</p>
+                    <p>Nip. 19791007 199810 1001</p>
+                </div>
+                <div style="text-align: center; width: 40%;">
+                    <p style="margin-bottom: 60px;">Tondano, ${reportDateString}<br><br>Kabid Kedaruratan dan Logistik</p>
+                    <p style="font-weight: bold; text-decoration: underline;">Jelly N. Bokau, SST</p>
+                    <p>Pembina Tkt I, IV/b</p>
+                    <p>Nip. 19680702 199003 2007</p>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('previewModalLabel').textContent = 'Preview Laporan Kumulatif (Matrix)';
+    document.getElementById('preview-content').innerHTML = printContent;
+    const modal = new bootstrap.Modal(document.getElementById('preview-modal'));
+    modal.show();
+}
+
+/**
+ * [FUNGSI PRINT 4 - BARU] Mencetak Laporan Dampak Korban (KK/Jiwa) Sesuai PDF Halaman 2
+ */
+function handlePrintImpactReport() {
+    const filterValue = document.getElementById('period-filter').value;
+    
+    // Tentukan Tahun Laporan (default tahun sekarang jika filter kosong)
+    let selectedYear = new Date().getFullYear();
+    if (filterValue) {
+        selectedYear = filterValue.split('-')[0];
+    }
+
+    // Filter data hanya untuk tahun yang dipilih
+    const yearlyData = allReportData.filter(item => {
+        if (!item.disaster_date) return false;
+        return item.disaster_date.startsWith(selectedYear);
+    });
+
+    const months = [
+        "JANUARI", "FEBRUARI", "MARET", "APRIL", "MEI", "JUNI",
+        "JULI", "AGUSTUS", "SEPTEMBER", "OKTOBER", "NOVEMBER", "DESEMBER"
+    ];
+
+    // Kolom Bencana sesuai PDF Page 2
+    // Mapping: Kunci Database => Label Kolom
+    const disasterColumns = [
+        { db: 'Angin Puting Beliung', label: 'ANGIN PUTTING BELIUNG' },
+        { db: 'Pohon Tumbang', label: 'POHON TUMBANG' },
+        { db: 'Tanah Longsor', label: 'LONGSOR' },
+        { db: 'Kebakaran', label: 'KEBAKARAN' },
+        { db: 'Kebakaran Hutan', label: 'KARHUTLAH' },
+        { db: 'Orang Hilang', label: 'ORANG HILANG' },
+        { db: 'Banjir', label: 'BANJIR' },
+        { db: 'Gempa Bumi', label: 'GEMPA BUMI' }
+    ];
+
+    // Inisialisasi Matrix Data
+    // stats[monthIndex] = { 'Banjir': {kk: 0, jiwa: 0}, ..., total: {kk: 0, jiwa: 0} }
+    const stats = {};
+    months.forEach((m, index) => {
+        stats[index] = { total: { kk: 0, jiwa: 0 } };
+        disasterColumns.forEach(col => {
+            stats[index][col.db] = { kk: 0, jiwa: 0 };
+        });
+    });
+
+    // Grand Totals
+    const grandTotals = { total: { kk: 0, jiwa: 0 } };
+    disasterColumns.forEach(col => grandTotals[col.db] = { kk: 0, jiwa: 0 });
+
+    // Isi Data
+    yearlyData.forEach(item => {
+        const date = new Date(item.disaster_date);
+        const monthIndex = date.getMonth(); // 0 - 11
+        
+        let dbType = item.jenisBencana;
+        if (dbType === "Kebakaran Hutan (Karhutla)") dbType = "Kebakaran Hutan";
+
+        const colExists = disasterColumns.find(col => col.db === dbType);
+        
+        // Ambil data KK dan Jiwa, konversi ke integer (antisipasi null/undefined)
+        const kk = parseInt(item.kkTerdampak) || 0;
+        const jiwa = parseInt(item.jiwaTerdampak) || 0;
+
+        if (colExists && stats[monthIndex]) {
+            // Add to monthly cell
+            stats[monthIndex][dbType].kk += kk;
+            stats[monthIndex][dbType].jiwa += jiwa;
+            
+            // Add to monthly total
+            stats[monthIndex].total.kk += kk;
+            stats[monthIndex].total.jiwa += jiwa;
+            
+            // Add to grand total per column
+            grandTotals[dbType].kk += kk;
+            grandTotals[dbType].jiwa += jiwa;
+
+            // Add to grand total overall
+            grandTotals.total.kk += kk;
+            grandTotals.total.jiwa += jiwa;
+        }
+    });
+
+    // --- Build Table HTML ---
+    
+    // 1. Header Row
+    let headerRowTop = '';
+    let headerRowBottom = '';
+    
+    disasterColumns.forEach(col => {
+        headerRowTop += `<th colspan="2" style="border: 1px solid #000; padding: 4px; font-size: 9px;">${col.label}</th>`;
+        headerRowBottom += `<th style="border: 1px solid #000; padding: 4px; font-size: 8px;">KK</th><th style="border: 1px solid #000; padding: 4px; font-size: 8px;">JIWA</th>`;
+    });
+
+    // 2. Data Rows
+    let tableRows = '';
+    months.forEach((monthName, index) => {
+        const rowData = stats[index];
+        let colsHtml = '';
+        
+        disasterColumns.forEach(col => {
+            const data = rowData[col.db];
+            const valKK = data.kk > 0 ? data.kk : '';
+            const valJiwa = data.jiwa > 0 ? data.jiwa : '';
+            colsHtml += `
+                <td style="border: 1px solid #000; padding: 4px; text-align: center;">${valKK}</td>
+                <td style="border: 1px solid #000; padding: 4px; text-align: center;">${valJiwa}</td>
+            `;
+        });
+
+        const totalKK = rowData.total.kk > 0 ? rowData.total.kk : '';
+        const totalJiwa = rowData.total.jiwa > 0 ? rowData.total.jiwa : '';
+
+        tableRows += `
+            <tr>
+                <td style="border: 1px solid #000; padding: 4px; text-align: center;">${index + 1}</td>
+                <td style="border: 1px solid #000; padding: 4px; text-align: left; padding-left: 5px;">${monthName}</td>
+                ${colsHtml}
+                <td style="border: 1px solid #000; padding: 4px; text-align: center; font-weight: bold;">${totalKK}</td>
+                <td style="border: 1px solid #000; padding: 4px; text-align: center; font-weight: bold;">${totalJiwa}</td>
+            </tr>
+        `;
+    });
+
+    // 3. Grand Total Row
+    let grandTotalColsHtml = '';
+    disasterColumns.forEach(col => {
+        const data = grandTotals[col.db];
+        const valKK = data.kk > 0 ? data.kk : '';
+        const valJiwa = data.jiwa > 0 ? data.jiwa : '';
+        grandTotalColsHtml += `
+            <td style="border: 1px solid #000; padding: 4px; text-align: center; font-weight: bold;">${valKK}</td>
+            <td style="border: 1px solid #000; padding: 4px; text-align: center; font-weight: bold;">${valJiwa}</td>
+        `;
+    });
+
+    const grandTotalRow = `
+        <tr style="background-color: #f0f0f0;">
+            <td colspan="2" style="border: 1px solid #000; padding: 4px; text-align: center; font-weight: bold;">TOTAL</td>
+            ${grandTotalColsHtml}
+            <td style="border: 1px solid #000; padding: 4px; text-align: center; font-weight: bold;">${grandTotals.total.kk}</td>
+            <td style="border: 1px solid #000; padding: 4px; text-align: center; font-weight: bold;">${grandTotals.total.jiwa}</td>
+        </tr>
+    `;
+
+    // Tanggal untuk TTD
+    const today = new Date();
+    const monthNamesIndo = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+    const reportDateString = `${today.getDate()} ${monthNamesIndo[today.getMonth()]} ${today.getFullYear()}`;
+
+    // --- Template HTML Laporan ---
+    const printContent = `
+        <div style="font-family: Arial, sans-serif; width: 100%; font-size: 10px; color: #000;">
+            <!-- HEADER -->
+            <div style="text-align: center; margin-bottom: 20px;">
+                <h2 style="margin: 0; font-size: 14px; font-weight: bold;">PEMERINTAH KABUPATEN MINAHASA</h2>
+                <h2 style="margin: 0; font-size: 16px; font-weight: bold;">BADAN PENANGGULANGAN BENCANA DAERAH</h2>
+                <p style="margin: 3px 0 0; font-size: 9px;">Alamat: Kompleks Stadion Maesa Kelurahan Wewelen (Tondano)</p>
+                <p style="margin: 0; font-size: 9px;">Website: www.minahasa.go.id E-mail: pemkab.minahasa@minahasa.go.id</p>
+                <hr style="border: 1px solid #000; margin-top: 8px;">
+            </div>
+
+            <!-- TITLE -->
+            <div style="text-align: center; margin-bottom: 15px;">
+                <h3 style="margin: 0; font-size: 12px; font-weight: bold; text-decoration: underline;">REKAPITULASI DATA LAPORAN KORBAN TERDAMPAK BENCANA TAHUN ${selectedYear}</h3>
+            </div>
+
+            <!-- TABLE -->
+            <table style="width: 100%; border-collapse: collapse; font-size: 9px;">
+                <thead>
+                    <tr style="background-color: #e0e0e0;">
+                        <th rowspan="2" style="border: 1px solid #000; padding: 4px; width: 25px;">NO</th>
+                        <th rowspan="2" style="border: 1px solid #000; padding: 4px;">BULAN</th>
+                        ${headerRowTop}
+                        <th colspan="2" style="border: 1px solid #000; padding: 4px;">TOTAL</th>
+                    </tr>
+                    <tr style="background-color: #e0e0e0;">
+                        ${headerRowBottom}
+                        <th style="border: 1px solid #000; padding: 4px; font-size: 8px;">KK</th>
+                        <th style="border: 1px solid #000; padding: 4px; font-size: 8px;">JIWA</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${tableRows}
+                    ${grandTotalRow}
+                </tbody>
+            </table>
+
+            <!-- SIGNATURE SECTION -->
+            <div style="margin-top: 30px; display: flex; justify-content: space-between; page-break-inside: avoid;">
+                <div style="text-align: center; width: 40%;">
+                    <p style="margin-bottom: 50px;">Mengetahui<br>Kepala Badan Penanggulangan Bencana<br>Daerah Kabupaten Minahasa</p>
+                    <p style="font-weight: bold; text-decoration: underline;">LONA O.K. WATTIE, S.STP, M.AP</p>
+                    <p>Pembina Utama Muda, IV/c</p>
+                    <p>Nip. 19791007 199810 1001</p>
+                </div>
+                <div style="text-align: center; width: 40%;">
+                    <p style="margin-bottom: 50px;">Tondano, ${reportDateString}<br><br>Kabid Kedaruratan dan Logistik</p>
+                    <p style="font-weight: bold; text-decoration: underline;">Jelly N. Bokau, SST</p>
+                    <p>Pembina Tkt I, IV/b</p>
+                    <p>Nip. 19680702 199003 2007</p>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('previewModalLabel').textContent = 'Preview Laporan Dampak (KK/Jiwa)';
+    document.getElementById('preview-content').innerHTML = printContent;
+    const modal = new bootstrap.Modal(document.getElementById('preview-modal'));
+    modal.show();
+}
+
+/**
  * Menangani konfirmasi cetak dari modal preview
  */
 function handleConfirmPrint() {
     const previewContent = document.getElementById('preview-content');
     let printContent = previewContent.innerHTML;
-    printContent = printContent.replace('transform: scale(0.8); transform-origin: top left;', '');
+    
+    // Clean up transform scale styles for printing
+    printContent = printContent.replace(/transform: scale\(.*?\);/g, '');
+    printContent = printContent.replace(/transform-origin:.*?;/g, '');
 
     if (!printContent.includes('<html>')) {
         printContent = `
@@ -571,9 +1014,8 @@ function handleConfirmPrint() {
                 <style>
                     body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
                     table { width: 100%; border-collapse: collapse; }
-                    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-                    th { background-color: #f2f2f2; }
-                    @page { size: A4; margin: 2cm; }
+                    th, td { border: 1px solid #000; padding: 4px; text-align: center; }
+                    @page { size: A4 landscape; margin: 1cm; } /* Landscape is better for wide tables */
                 </style>
             </head>
             <body>
@@ -583,15 +1025,16 @@ function handleConfirmPrint() {
         `;
     }
 
-    const printWindow = window.open('', '_blank', 'width=800,height=600');
+    const printWindow = window.open('', '_blank', 'width=1000,height=800');
     printWindow.document.write(printContent);
     printWindow.document.close();
     printWindow.onload = function() {
         printWindow.print();
-        printWindow.onafterprint = function() {
-            printWindow.close();
-        };
+        // Optional: close window after print
+        // printWindow.onafterprint = function() { printWindow.close(); };
     };
+    
+    // Hide modal
     const modalElement = document.getElementById('preview-modal');
     if (modalElement) {
         const modal = bootstrap.Modal.getInstance(modalElement);
@@ -605,6 +1048,18 @@ function handleConfirmPrint() {
 // --- EVENT LISTENERS ---
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Set default filter date to current month
+    const filterInput = document.getElementById('period-filter');
+    if (filterInput) {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+        filterInput.value = `${year}-${month}`;
+        
+        // Add event listener for filter change
+        filterInput.addEventListener('change', filterAndRenderReports);
+    }
+
     // Panggil fungsi pemuatan data yang baru
     loadAndDisplayAllReports();
 
@@ -664,7 +1119,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     const printInsidenBtn = document.getElementById('print-insiden-report');
     if (printInsidenBtn) {
-        printInsidenBtn.addEventListener('click', handlePrintInsidenReport); // Panggil fungsi baru
+        printInsidenBtn.addEventListener('click', handlePrintInsidenReport); 
+    }
+    // Listener untuk tombol Cetak Laporan Kumulatif
+    const printCumulativeBtn = document.getElementById('print-cumulative-report');
+    if (printCumulativeBtn) {
+        printCumulativeBtn.addEventListener('click', handlePrintCumulativeReport);
+    }
+    // Listener untuk tombol Cetak Laporan Dampak (KK/Jiwa)
+    const printImpactBtn = document.getElementById('print-impact-report');
+    if (printImpactBtn) {
+        printImpactBtn.addEventListener('click', handlePrintImpactReport);
     }
     // --- AKHIR LISTENER TOMBOL CETAK BARU ---
     
@@ -815,4 +1280,4 @@ function handleDeleteDisaster(id) {
             });
         }
     });
-}   
+}
