@@ -24,6 +24,10 @@ const quantificationScores = {
 // 3. Data will be loaded from database
 let allReportData = []; // Variabel global untuk semua data
 
+// Daftar Opsi untuk Dropdown Edit
+const bencanaOptions = ['Banjir', 'Tanah Longsor', 'Angin Puting Beliung', 'Gempa Bumi', 'Kebakaran', 'Kebakaran Hutan'];
+const insidenOptions = ['Pohon Tumbang', 'Orang Hilang'];
+
 /**
  * Format date to Indonesian format: "16 Oktober 2025"
  * @param {string} dateString - Date string in YYYY-MM-DD format
@@ -1197,15 +1201,43 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (data.success) {
                         const disaster = data.data;
                         
-                        // Isi formulir modal
+                        // Isi formulir modal (ID & Data Umum)
                         document.getElementById('edit-disaster-id').value = disaster.id;
-                        document.getElementById('edit-jenisBencana').value = disaster.jenisBencana; // Ini akan berisi "Banjir" atau "Pohon Tumbang"
                         document.getElementById('edit-lokasi').value = disaster.lokasi;
-                        document.getElementById('edit-jiwaTerdampak').value = disaster.jiwaTerdampak;
-                        document.getElementById('edit-kkTerdampak').value = disaster.kkTerdampak;
-                        document.getElementById('edit-tingkatKerusakan').value = disaster.tingkatKerusakan;
-                        document.getElementById('edit-keterangan').value = disaster.keterangan; // Isi Keterangan
                         document.getElementById('edit-disasterDate').value = disaster.disaster_date;
+                        document.getElementById('edit-keterangan').value = disaster.keterangan || '';
+
+                        // Reset input file (Agar bersih saat dibuka)
+                        const photoInput = document.querySelector('#edit-disaster-form input[type="file"]');
+                        if (photoInput) photoInput.value = '';
+
+                        // Logic Kategori (Bencana vs Insiden) untuk Dropdown & Fields
+                        const isInsiden = disaster.kategori_laporan === 'insiden';
+                        const selectEl = document.getElementById('edit-jenisBencana');
+                        const fieldBencana = document.querySelectorAll('.field-bencana');
+                        
+                        // Populate Dropdown Jenis Bencana secara Dinamis
+                        selectEl.innerHTML = ''; // Kosongkan opsi lama
+                        const options = isInsiden ? insidenOptions : bencanaOptions;
+                        
+                        options.forEach(opt => {
+                            const el = document.createElement('option');
+                            el.value = opt;
+                            el.textContent = opt;
+                            if (opt === disaster.jenisBencana) el.selected = true;
+                            selectEl.appendChild(el);
+                        });
+
+                        // Show/Hide Fields Berdasarkan Kategori
+                        if (isInsiden) {
+                            fieldBencana.forEach(el => el.style.display = 'none');
+                            // Optional: Reset nilai jika perlu, tapi backend akan mengabaikannya
+                        } else {
+                            fieldBencana.forEach(el => el.style.display = 'block');
+                            document.getElementById('edit-jiwaTerdampak').value = disaster.jiwaTerdampak;
+                            document.getElementById('edit-kkTerdampak').value = disaster.kkTerdampak;
+                            document.getElementById('edit-tingkatKerusakan').value = disaster.tingkatKerusakan;
+                        }
                         
                         // Tampilkan modal
                         const editModal = new bootstrap.Modal(document.getElementById('edit-modal'));
@@ -1231,14 +1263,13 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // --- [DIPERBARUI] Handle submit formulir edit modal ---
-    // (Pindahkan listener ke dalam DOMContentLoaded)
     const editForm = document.getElementById('edit-disaster-form');
     if (editForm) {
         editForm.addEventListener('submit', function(event) {
             event.preventDefault(); 
             
             const form = event.target;
-            const formData = new FormData(form);
+            const formData = new FormData(form); // Menggunakan FormData untuk handle file upload otomatis
             const modalElement = document.getElementById('edit-modal');
             const modal = bootstrap.Modal.getInstance(modalElement);
 
@@ -1260,7 +1291,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         timer: 1500,
                         showConfirmButton: false
                     });
-                    loadAndDisplayAllReports(); // Muat ulang SEMUA data
+                    loadAndDisplayAllReports(); // Muat ulang SEMUA data di tabel
                 } else {
                     Swal.fire({ icon: 'error', title: 'Gagal!', text: data.message, confirmButtonColor: '#e60013' });
                 }

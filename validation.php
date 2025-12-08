@@ -119,7 +119,7 @@ $username = $_SESSION['username'] ?? '';
                                 <th scope="col">Kerusakan</th>
                                 <th scope="col">Pengirim</th>
                                 <th scope="col">Tanggal</th>
-                                <th scope="col">Foto</th>
+                                <th scope="col" style="min-width: 150px;">Foto</th>
                                 <th scope="col">Status</th>
                                 <th scope="col">Aksi</th>
                             </tr>
@@ -142,7 +142,7 @@ $username = $_SESSION['username'] ?? '';
                                 <th scope="col">Keterangan</th>
                                 <th scope="col">Pengirim</th>
                                 <th scope="col">Tanggal</th>
-                                <th scope="col">Foto</th>
+                                <th scope="col" style="min-width: 150px;">Foto</th>
                                 <th scope="col">Status</th>
                                 <th scope="col">Aksi</th>
                             </tr>
@@ -182,7 +182,7 @@ $username = $_SESSION['username'] ?? '';
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Foto Dokumentasi</h5>
+                    <h5 class="modal-title" id="photoModalLabel">Foto Dokumentasi</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body text-center">
@@ -237,12 +237,9 @@ $username = $_SESSION['username'] ?? '';
         }
 
         function processData(allData) {
-            // Filter Data Bulan Ini
-            const now = new Date();
-            const monthlyData = allData.filter(d => {
-                const date = new Date(d.created_at);
-                return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
-            });
+            // Filter Data Bulan Ini (Opsional: Jika ingin semua data, hapus filter ini)
+            // Di sini kita tampilkan semua agar hasil upload terlihat
+            const monthlyData = allData; 
 
             // Update Statistik Angka
             document.getElementById('pending-count').innerText = monthlyData.filter(r => r.status === 'pending').length;
@@ -260,7 +257,6 @@ $username = $_SESSION['username'] ?? '';
 
         // --- 3. RENDER TABEL ---
         function renderTable(tableId, tbodyId, data, type) {
-            // Hancurkan DataTable lama jika ada
             if ($.fn.DataTable.isDataTable(tableId)) {
                 $(tableId).DataTable().destroy();
             }
@@ -275,7 +271,6 @@ $username = $_SESSION['username'] ?? '';
             }
 
             data.forEach(item => {
-                // Elemen HTML Baris
                 const isPending = item.status === 'pending';
                 const checkbox = isPending ? `<input type="checkbox" class="report-checkbox" value="${item.id}">` : '-';
                 
@@ -283,10 +278,17 @@ $username = $_SESSION['username'] ?? '';
                 if(item.status === 'approved') statusBadge = `<span class="badge bg-success">Disetujui</span>`;
                 if(item.status === 'rejected') statusBadge = `<span class="badge bg-danger">Ditolak</span>`;
 
+                // --- PERBAIKAN LOGIKA FOTO ---
+                // Menampilkan semua foto dalam grid kecil
                 let photoHtml = '<span class="text-muted small">No Img</span>';
                 if (item.photos && item.photos.length > 0) {
-                    photoHtml = `<img src="${item.photos[0].file_path}" class="img-thumbnail" style="height:40px; cursor:pointer;" onclick="showPhoto('${item.photos[0].file_path}')">`;
+                    photoHtml = '<div class="d-flex flex-wrap gap-1">';
+                    item.photos.forEach(p => {
+                        photoHtml += `<img src="${p.file_path}" class="img-thumbnail" style="width: 40px; height: 40px; object-fit: cover; cursor: pointer;" onclick="showPhoto('${p.file_path}', '${p.original_filename}')" title="${p.original_filename}">`;
+                    });
+                    photoHtml += '</div>';
                 }
+                // ------------------------------
 
                 let actions = '-';
                 if(isPending) {
@@ -298,9 +300,13 @@ $username = $_SESSION['username'] ?? '';
                     `;
                 }
 
-                const dateStr = new Date(item.created_at).toLocaleDateString('id-ID');
+                // Format Tanggal
+                let dateStr = item.created_at;
+                try {
+                    const d = new Date(item.created_at);
+                    dateStr = d.toLocaleDateString('id-ID');
+                } catch(e) {}
 
-                // Template Baris (Bencana vs Insiden)
                 let row = '';
                 if(type === 'bencana') {
                     row = `<tr>
@@ -311,7 +317,7 @@ $username = $_SESSION['username'] ?? '';
                         <td>${item.tingkatKerusakan}</td>
                         <td>${item.submitted_by_name || 'User'}</td>
                         <td>${dateStr}</td>
-                        <td class="text-center">${photoHtml}</td>
+                        <td>${photoHtml}</td>
                         <td class="text-center">${statusBadge}</td>
                         <td class="text-center">${actions}</td>
                     </tr>`;
@@ -323,7 +329,7 @@ $username = $_SESSION['username'] ?? '';
                         <td><small>${item.keterangan || '-'}</small></td>
                         <td>${item.submitted_by_name || 'User'}</td>
                         <td>${dateStr}</td>
-                        <td class="text-center">${photoHtml}</td>
+                        <td>${photoHtml}</td>
                         <td class="text-center">${statusBadge}</td>
                         <td class="text-center">${actions}</td>
                     </tr>`;
@@ -335,7 +341,7 @@ $username = $_SESSION['username'] ?? '';
             const targets = type === 'bencana' ? [0,3,4,7,9] : [0,2,3,6,8];
             const table = $(tableId).DataTable({
                 pageLength: 5,
-                order: [[type==='bencana'?6:5, 'desc']],
+                order: [[6, 'desc']], // Urutkan berdasarkan tanggal (kolom ke-7, index 6)
                 columnDefs: [{ orderable: false, targets: targets }]
             });
 
@@ -417,7 +423,6 @@ $username = $_SESSION['username'] ?? '';
 
             const ids = Array.from(checked).map(cb => cb.value);
             
-            // Konfirmasi
             const confirm = await Swal.fire({
                 title: `Konfirmasi ${label} ${ids.length} Laporan?`,
                 icon: 'warning',
@@ -488,8 +493,9 @@ $username = $_SESSION['username'] ?? '';
             }
         }
 
-        function showPhoto(src) {
+        function showPhoto(src, title) {
             document.getElementById('photo-modal-image').src = src;
+            document.getElementById('photoModalLabel').textContent = title || 'Foto Dokumentasi';
             new bootstrap.Modal('#photo-modal').show();
         }
     </script>

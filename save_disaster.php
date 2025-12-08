@@ -2,33 +2,33 @@
 session_start();
 require_once 'config.php';
 
-// Fungsi helper thumbnail dari file asli Anda
-function create_thumbnail($originalPath, $thumbPath, $maxWidth = 150, $maxHeight = 150) {
-    list($origWidth, $origHeight, $type) = @getimagesize($originalPath);
-    if (!$origWidth || !$origHeight) return false;
-    $ratio = min($maxWidth / $origWidth, $maxHeight / $origHeight);
-    $thumbWidth = (int)($origWidth * $ratio);
-    $thumbHeight = (int)($origHeight * $ratio);
-    $thumbImage = imagecreatetruecolor($thumbWidth, $thumbHeight);
-    switch ($type) {
-        case IMAGETYPE_JPEG: $sourceImage = @imagecreatefromjpeg($originalPath); break;
-        case IMAGETYPE_PNG: $sourceImage = @imagecreatefrompng($originalPath); imagealphablending($thumbImage, false); imagesavealpha($thumbImage, true); break;
-        case IMAGETYPE_GIF: $sourceImage = @imagecreatefromgif($originalPath); break;
-        case IMAGETYPE_WEBP: $sourceImage = @imagecreatefromwebp($originalPath); break;
-        default: return false;
+// Fungsi helper thumbnail (Khusus JPG)
+if (!function_exists('create_thumbnail')) {
+    function create_thumbnail($originalPath, $thumbPath, $maxWidth = 150, $maxHeight = 150) {
+        list($origWidth, $origHeight, $type) = @getimagesize($originalPath);
+        if (!$origWidth || !$origHeight) return false;
+        
+        // Hanya proses jika tipe adalah JPEG
+        if ($type !== IMAGETYPE_JPEG) return false;
+
+        $ratio = min($maxWidth / $origWidth, $maxHeight / $origHeight);
+        $thumbWidth = (int)($origWidth * $ratio);
+        $thumbHeight = (int)($origHeight * $ratio);
+        
+        $thumbImage = imagecreatetruecolor($thumbWidth, $thumbHeight);
+        $sourceImage = @imagecreatefromjpeg($originalPath);
+        
+        if (!$sourceImage) return false;
+        
+        imagecopyresampled($thumbImage, $sourceImage, 0, 0, 0, 0, $thumbWidth, $thumbHeight, $origWidth, $origHeight);
+        
+        // Simpan sebagai JPG dengan kualitas 90
+        $success = imagejpeg($thumbImage, $thumbPath, 90);
+        
+        imagedestroy($sourceImage);
+        imagedestroy($thumbImage);
+        return $success;
     }
-    if (!$sourceImage) return false;
-    imagecopyresampled($thumbImage, $sourceImage, 0, 0, 0, 0, $thumbWidth, $thumbHeight, $origWidth, $origHeight);
-    $success = false;
-    switch ($type) {
-        case IMAGETYPE_JPEG: $success = imagejpeg($thumbImage, $thumbPath, 90); break;
-        case IMAGETYPE_PNG: $success = imagepng($thumbImage, $thumbPath, 9); break;
-        case IMAGETYPE_GIF: $success = imagegif($thumbImage, $thumbPath); break;
-        case IMAGETYPE_WEBP: $success = imagewebp($thumbImage, $thumbPath, 90); break;
-    }
-    imagedestroy($sourceImage);
-    imagedestroy($thumbImage);
-    return $success;
 }
 
 header('Content-Type: application/json');
@@ -77,23 +77,20 @@ if ($kategoriLaporan === 'bencana') {
     }
 
 } else if ($kategoriLaporan === 'insiden') {
-    $jenisBencana = trim($_POST['jenisInsiden'] ?? ''); // Simpan "Pohon Tumbang" di kolom jenisBencana
+    $jenisBencana = trim($_POST['jenisInsiden'] ?? ''); 
     $keterangan = trim($_POST['keteranganInsiden'] ?? null);
     
-    // Set nilai default non-SAW ke 0
     $jiwaTerdampak = 0;
     $kkTerdampak = 0;
-    $tingkatKerusakan = 'Ringan'; // Atau N/A, tapi 'Ringan' lebih aman
+    $tingkatKerusakan = 'Ringan';
     
     if (empty($jenisBencana)) {
         echo json_encode(['success' => false, 'message' => 'Jenis Insiden wajib diisi untuk kategori ini']);
         exit;
     }
 }
-// --- AKHIR LOGIKA KATEGORI ---
 
-
-// Logika Upload Foto (tidak berubah)
+// --- LOGIKA UPLOAD FOTO (KHUSUS JPG) ---
 $uploadedPhotos = [];
 $uploadDir = 'uploads/';
 if (!is_dir($uploadDir)) {
@@ -101,7 +98,8 @@ if (!is_dir($uploadDir)) {
 }
 
 if (isset($_FILES['photos']) && is_array($_FILES['photos']['name'])) {
-    $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    // Hanya izinkan JPEG
+    $allowedTypes = ['image/jpeg', 'image/jpg'];
     $maxFileSize = 5 * 1024 * 1024; // 5MB
 
     foreach ($_FILES['photos']['name'] as $key => $filename) {
@@ -112,33 +110,34 @@ if (isset($_FILES['photos']) && is_array($_FILES['photos']['name'])) {
         
         if ($fileError !== UPLOAD_ERR_OK) continue;
         
-        $fileSize = @filesize($fileTmp); // Gunakan filesize() yg aman
+        $fileSize = @filesize($fileTmp);
         if ($fileSize === false || $fileSize > $maxFileSize) continue;
 
         $fileType = @mime_content_type($fileTmp);
-        if (!in_array($fileType, $allowedTypes)) continue;
-
         $fileExtension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-        if (!in_array($fileType, $allowedTypes)) {
-             // Cek ekstensi jika mime_content_type gagal
-            if (!in_array('image/' . $fileExtension, $allowedTypes)) {
-                 continue;
-            }
+        
+        // Validasi Ketat untuk JPG
+        $isValidType = false;
+        if (($fileType === 'image/jpeg' || $fileType === 'image/jpg') && 
+            ($fileExtension === 'jpg' || $fileExtension === 'jpeg')) {
+            $isValidType = true;
         }
 
-        $uniqueFilename = uniqid('disaster_', true) . '.' . $fileExtension;
+        if (!$isValidType) continue;
+
+        $uniqueFilename = uniqid('disaster_', true) . '.jpg'; // Paksa ekstensi .jpg
         $filePath = $uploadDir . $uniqueFilename;
 
         if (move_uploaded_file($fileTmp, $filePath)) {
             $thumbFilename = 'thumb_' . $uniqueFilename;
             $thumbPath = $uploadDir . $thumbFilename;
-            $thumbnail_created = create_thumbnail($filePath, $thumbPath);
+            // Buat thumbnail (hanya JPG)
+            create_thumbnail($filePath, $thumbPath);
 
             $uploadedPhotos[] = [
                 'filename' => $uniqueFilename,
                 'original_filename' => $filename,
-                'file_path' => $filePath,
-                'thumbnail_path' => $thumbnail_created ? $thumbPath : null
+                'file_path' => $filePath
             ];
         }
     }
@@ -148,7 +147,6 @@ if (isset($_FILES['photos']) && is_array($_FILES['photos']['name'])) {
 try {
     $pdo->beginTransaction();
 
-    // SQL DIPERBARUI untuk kolom baru
     $sql = "INSERT INTO disasters (
                 jenisBencana, lokasi, jiwaTerdampak, kkTerdampak, tingkatKerusakan, keterangan, 
                 disaster_date, status, submitted_by, validated_at, kategori_laporan
@@ -170,7 +168,6 @@ try {
     ]);
     $disasterId = $pdo->lastInsertId();
 
-    // Logika Insert Foto (tidak berubah)
     if (!empty($uploadedPhotos)) {
         $photoStmt = $pdo->prepare("INSERT INTO disaster_photos (disaster_id, filename, original_filename, file_path) VALUES (?, ?, ?, ?)");
         foreach ($uploadedPhotos as $photo) {
