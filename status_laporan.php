@@ -138,11 +138,21 @@ $username = $_SESSION['username'] ?? 'User';
                                 <label class="form-label">Tanggal Kejadian</label>
                                 <input type="date" id="edit-disasterDate" name="disasterDate" required class="form-control">
                             </div>
+                            
+                            <!-- [NEW] Container untuk Menampilkan Foto Saat Ini -->
+                            <div class="col-12" id="edit-existing-photos-container" style="display: none;">
+                                <label class="form-label fw-bold">Foto Saat Ini (Centang kotak "Hapus" untuk menghapus foto)</label>
+                                <div id="edit-existing-photos" class="row g-2">
+                                    <!-- Foto akan dimuat di sini oleh JS -->
+                                </div>
+                                <hr>
+                            </div>
 
                             <!-- Input File Baru -->
                             <div class="col-md-6">
-                                <label class="form-label">Tambah Foto Dokumentasi</label>
-                                <input type="file" name="photos[]" class="form-control" multiple accept="image/*">
+                                <label class="form-label">Tambah Foto Dokumentasi (Hanya .jpg/.jpeg)</label>
+                                <!-- UPDATED: Accept attribute strictly set to .jpg, .jpeg to filter file explorer -->
+                                <input type="file" name="photos[]" class="form-control" multiple accept=".jpg, .jpeg">
                                 <div class="form-text small">Pilih foto baru jika ingin menambahkan dokumentasi.</div>
                             </div>
                         </div>
@@ -308,6 +318,34 @@ $username = $_SESSION['username'] ?? 'User';
                             document.getElementById('edit-jiwaTerdampak').value = data.jiwaTerdampak;
                             document.getElementById('edit-kkTerdampak').value = data.kkTerdampak;
                             document.getElementById('edit-tingkatKerusakan').value = data.tingkatKerusakan;
+                        }
+
+                        // [NEW] Logic Menampilkan Foto Existing
+                        const photoContainer = document.getElementById('edit-existing-photos');
+                        const photoWrapper = document.getElementById('edit-existing-photos-container');
+                        
+                        photoContainer.innerHTML = ''; // Clear previous
+                        
+                        if (data.photos && data.photos.length > 0) {
+                            photoWrapper.style.display = 'block';
+                            data.photos.forEach(photo => {
+                                const photoItem = `
+                                    <div class="col-6 col-md-3">
+                                        <div class="card h-100 border bg-light">
+                                            <div class="card-body p-2 text-center">
+                                                <img src="${photo.file_path}" class="img-fluid rounded mb-2" style="height: 80px; object-fit: cover;">
+                                                <div class="form-check form-check-inline">
+                                                    <input class="form-check-input border-danger" type="checkbox" name="delete_photos[]" value="${photo.id}" id="del_${photo.id}">
+                                                    <label class="form-check-label text-danger small fw-bold" for="del_${photo.id}">Hapus</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                                photoContainer.innerHTML += photoItem;
+                            });
+                        } else {
+                            photoWrapper.style.display = 'none';
                         }
 
                         // Show Modal

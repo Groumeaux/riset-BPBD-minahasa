@@ -174,9 +174,10 @@ $username = $_SESSION['username'] ?? '';
                             <input type="date" id="disasterDate" name="disasterDate" required class="form-control" value="<?php echo date('Y-m-d'); ?>">
                         </div>
                         <div class="mb-3">
-                            <label for="photos" class="form-label">Foto Bencana (Opsional, maksimal 5 foto)</label>
-                            <input type="file" id="photos" name="photos[]" class="form-control" multiple accept="image/*">
-                            <div class="form-text">Pilih multiple foto dengan menekan Ctrl/Cmd + klik. Maksimal 5MB per foto.</div>
+                            <label for="photos" class="form-label">Foto Bencana (Maks 5 foto, .jpg/.jpeg)</label>
+                            <!-- UPDATED: Batasi file input hanya JPG -->
+                            <input type="file" id="photos" name="photos[]" class="form-control" multiple accept=".jpg, .jpeg, image/jpeg">
+                            <div class="form-text">Pilih multiple foto dengan menekan Ctrl/Cmd + klik. Maksimal 5MB per foto. Hanya file JPG/JPEG.</div>
                         </div>
                         <button type="submit" class="w-100 btn btn-bpbd-primary fw-bold py-2">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-circle me-2" viewBox="0 0 16 16">
@@ -193,13 +194,32 @@ $username = $_SESSION['username'] ?? '';
                 <!-- NEW: Filter Selection & Cumulative Print Section -->
                 <div class="bg-white p-4 rounded shadow-sm mb-4">
                     <div class="row align-items-center gy-3">
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <h2 class="h5 fw-bold text-dark mb-0">Filter Periode</h2>
                             <p class="text-muted small mb-0">Laporan per bulan/tahun</p>
                         </div>
-                        <div class="col-md-3">
-                            <input type="month" id="period-filter" class="form-control border-primary" value="<?php echo date('Y-m'); ?>">
+                        <!-- FILTER TAHUN & BULAN -->
+                        <div class="col-md-4 d-flex gap-2">
+                            <select id="filter-year" class="form-select border-primary fw-bold shadow-sm">
+                                <!-- Tahun akan diisi otomatis oleh JS -->
+                            </select>
+                            <select id="filter-month" class="form-select border-primary shadow-sm">
+                                <option value="" selected>Setahun Penuh</option>
+                                <option value="01">Januari</option>
+                                <option value="02">Februari</option>
+                                <option value="03">Maret</option>
+                                <option value="04">April</option>
+                                <option value="05">Mei</option>
+                                <option value="06">Juni</option>
+                                <option value="07">Juli</option>
+                                <option value="08">Agustus</option>
+                                <option value="09">September</option>
+                                <option value="10">Oktober</option>
+                                <option value="11">November</option>
+                                <option value="12">Desember</option>
+                            </select>
                         </div>
+                        
                         <div class="col-md-5 text-md-end d-flex gap-2 justify-content-end flex-wrap">
                             <button id="print-cumulative-report" class="btn btn-dark btn-sm d-flex align-items-center">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-table me-1" viewBox="0 0 16 16">
@@ -373,10 +393,20 @@ $username = $_SESSION['username'] ?? '';
                                 <input type="date" id="edit-disasterDate" name="disasterDate" required class="form-control">
                             </div>
 
+                            <!-- [NEW] Container untuk Menampilkan Foto Saat Ini -->
+                            <div class="col-12" id="edit-existing-photos-container" style="display: none;">
+                                <label class="form-label fw-bold">Foto Saat Ini (Centang kotak "Hapus" untuk menghapus foto)</label>
+                                <div id="edit-existing-photos" class="row g-2">
+                                    <!-- Foto akan dimuat di sini oleh JS -->
+                                </div>
+                                <hr>
+                            </div>
+
                             <!-- Added File Input -->
                             <div class="col-md-6">
-                                <label class="form-label">Tambah Foto Dokumentasi</label>
-                                <input type="file" name="photos[]" class="form-control" multiple accept="image/*">
+                                <label class="form-label">Tambah Foto Dokumentasi (Hanya .jpg/.jpeg)</label>
+                                <!-- UPDATED: Limit file accept type -->
+                                <input type="file" name="photos[]" class="form-control" multiple accept=".jpg, .jpeg, image/jpeg">
                                 <div class="form-text small">Pilih foto baru jika ingin menambahkan dokumentasi.</div>
                             </div>
                         </div>

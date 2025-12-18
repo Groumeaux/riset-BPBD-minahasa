@@ -36,6 +36,11 @@ try {
         exit;
     }
 
+    // [NEW] Fetch Photos associated with this disaster
+    $photoStmt = $pdo->prepare("SELECT id, file_path, original_filename FROM disaster_photos WHERE disaster_id = ?");
+    $photoStmt->execute([$id]);
+    $disaster['photos'] = $photoStmt->fetchAll();
+
     // Jika lolos semua pemeriksaan, kirim data
     echo json_encode(['success' => true, 'data' => $disaster]);
 

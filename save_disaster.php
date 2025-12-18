@@ -92,14 +92,14 @@ if ($kategoriLaporan === 'bencana') {
 
 // --- LOGIKA UPLOAD FOTO (KHUSUS JPG) ---
 $uploadedPhotos = [];
+$uploadErrors = []; // [NEW] Array untuk menampung pesan error
 $uploadDir = 'uploads/';
+
 if (!is_dir($uploadDir)) {
     mkdir($uploadDir, 0755, true);
 }
 
 if (isset($_FILES['photos']) && is_array($_FILES['photos']['name'])) {
-    // Hanya izinkan JPEG
-    $allowedTypes = ['image/jpeg', 'image/jpg'];
     $maxFileSize = 5 * 1024 * 1024; // 5MB
 
     foreach ($_FILES['photos']['name'] as $key => $filename) {
@@ -108,11 +108,20 @@ if (isset($_FILES['photos']) && is_array($_FILES['photos']['name'])) {
         $fileTmp = $_FILES['photos']['tmp_name'][$key];
         $fileError = $_FILES['photos']['error'][$key];
         
-        if ($fileError !== UPLOAD_ERR_OK) continue;
+        // Cek error standar PHP
+        if ($fileError !== UPLOAD_ERR_OK) {
+            $uploadErrors[] = "File $filename gagal diupload (Error Code: $fileError)";
+            continue;
+        }
         
+        // Cek ukuran
         $fileSize = @filesize($fileTmp);
-        if ($fileSize === false || $fileSize > $maxFileSize) continue;
+        if ($fileSize === false || $fileSize > $maxFileSize) {
+            $uploadErrors[] = "File $filename terlalu besar (Max 5MB)";
+            continue;
+        }
 
+        // Cek tipe file
         $fileType = @mime_content_type($fileTmp);
         $fileExtension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
         
@@ -123,15 +132,18 @@ if (isset($_FILES['photos']) && is_array($_FILES['photos']['name'])) {
             $isValidType = true;
         }
 
-        if (!$isValidType) continue;
+        if (!$isValidType) {
+            // [NEW] Simpan pesan error jika format salah
+            $uploadErrors[] = "File $filename ditolak (Hanya format JPG/JPEG yang diperbolehkan).";
+            continue;
+        }
 
-        $uniqueFilename = uniqid('disaster_', true) . '.jpg'; // Paksa ekstensi .jpg
+        $uniqueFilename = uniqid('disaster_', true) . '.jpg';
         $filePath = $uploadDir . $uniqueFilename;
 
         if (move_uploaded_file($fileTmp, $filePath)) {
             $thumbFilename = 'thumb_' . $uniqueFilename;
             $thumbPath = $uploadDir . $thumbFilename;
-            // Buat thumbnail (hanya JPG)
             create_thumbnail($filePath, $thumbPath);
 
             $uploadedPhotos[] = [
@@ -139,14 +151,16 @@ if (isset($_FILES['photos']) && is_array($_FILES['photos']['name'])) {
                 'original_filename' => $filename,
                 'file_path' => $filePath
             ];
+        } else {
+             $uploadErrors[] = "Gagal memindahkan file $filename ke folder uploads.";
         }
     }
 }
 
-
 try {
     $pdo->beginTransaction();
 
+    // Query INSERT disaster
     $sql = "INSERT INTO disasters (
                 jenisBencana, lokasi, jiwaTerdampak, kkTerdampak, tingkatKerusakan, keterangan, 
                 disaster_date, status, submitted_by, validated_at, kategori_laporan
@@ -176,7 +190,20 @@ try {
     }
 
     $pdo->commit();
-    echo json_encode(['success' => true, 'message' => 'Laporan berhasil disimpan']);
+
+    // [NEW] Buat pesan sukses yang informatif
+    $message = 'Laporan berhasil disimpan.';
+    if (count($uploadedPhotos) > 0) {
+        $message .= ' (' . count($uploadedPhotos) . ' foto berhasil diupload)';
+    }
+    
+    // [NEW] Tambahkan peringatan jika ada file yang ditolak
+    if (count($uploadErrors) > 0) {
+        $message .= "\n\nPERINGATAN: Beberapa file dilewati:\n- " . implode("\n- ", $uploadErrors);
+    }
+
+    echo json_encode(['success' => true, 'message' => $message]);
+
 } catch (PDOException $e) {
     $pdo->rollBack();
     echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);

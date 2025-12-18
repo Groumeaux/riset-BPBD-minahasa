@@ -78,7 +78,7 @@ $kategori = $report['kategori_laporan'];
 // --- 5. LOGIKA UPLOAD FOTO BARU (KHUSUS JPG) ---
 $uploadedPhotos = [];
 $uploadErrors = [];
-$uploadDir = 'uploads/'; // Pastikan folder ini ada dan writable
+$uploadDir = 'uploads/'; 
 
 if (!is_dir($uploadDir)) {
     mkdir($uploadDir, 0755, true);
@@ -93,20 +93,17 @@ if (isset($_FILES['photos']) && is_array($_FILES['photos']['name'])) {
         $fileTmp = $_FILES['photos']['tmp_name'][$key];
         $fileError = $_FILES['photos']['error'][$key];
         
-        // Cek error upload bawaan PHP
         if ($fileError !== UPLOAD_ERR_OK) {
             $uploadErrors[] = "Gagal upload $filename (Kode: $fileError)";
             continue;
         }
         
-        // Cek ukuran file
         $fileSize = @filesize($fileTmp);
         if ($fileSize === false || $fileSize > $maxFileSize) {
             $uploadErrors[] = "File $filename terlalu besar (Maks 5MB)";
             continue;
         }
 
-        // Cek tipe file (MIME type dan Ekstensi)
         $fileType = @mime_content_type($fileTmp);
         $fileExtension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
         
@@ -118,17 +115,14 @@ if (isset($_FILES['photos']) && is_array($_FILES['photos']['name'])) {
         }
 
         if (!$isValidType) {
-            $uploadErrors[] = "Format file $filename tidak didukung. Mohon hanya upload file JPG/JPEG.";
+            $uploadErrors[] = "File $filename ditolak (Hanya format JPG/JPEG yang diperbolehkan).";
             continue;
         }
 
-        // Generate nama file unik dengan ekstensi .jpg
         $uniqueFilename = uniqid('disaster_', true) . '.jpg';
         $filePath = $uploadDir . $uniqueFilename;
 
-        // Pindahkan file
         if (move_uploaded_file($fileTmp, $filePath)) {
-            // Buat Thumbnail (Juga JPG)
             $thumbFilename = 'thumb_' . $uniqueFilename;
             $thumbPath = $uploadDir . $thumbFilename;
             create_thumbnail($filePath, $thumbPath);
@@ -170,7 +164,6 @@ try {
         $stmt->execute([$jenisBencanaBaru, $lokasi, $disasterDate, $jiwa, $kk, $kerusakan, $keterangan, $id]);
 
     } else {
-        // Logika untuk Insiden
         $sql = "UPDATE disasters SET 
                 jenisBencana = ?, 
                 lokasi = ?, 
@@ -184,7 +177,35 @@ try {
         $stmt->execute([$jenisBencanaBaru, $lokasi, $disasterDate, $keterangan, $id]);
     }
 
-    // B. Masukkan Foto Baru ke Database (Jika ada)
+    // B. [NEW] HAPUS FOTO YANG DIPILIH
+    if (isset($_POST['delete_photos']) && is_array($_POST['delete_photos'])) {
+        $idsToDelete = $_POST['delete_photos'];
+        
+        foreach ($idsToDelete as $photoId) {
+            // Verifikasi kepemilikan foto (harus milik report ini)
+            $checkStmt = $pdo->prepare("SELECT file_path FROM disaster_photos WHERE id = ? AND disaster_id = ?");
+            $checkStmt->execute([$photoId, $id]);
+            $photo = $checkStmt->fetch();
+
+            if ($photo) {
+                // Hapus file fisik
+                if (file_exists($photo['file_path'])) {
+                    unlink($photo['file_path']);
+                }
+                // Hapus thumbnail jika ada
+                $thumbPath = str_replace('disaster_', 'thumb_disaster_', $photo['file_path']);
+                if (file_exists($thumbPath)) {
+                    unlink($thumbPath);
+                }
+
+                // Hapus dari database
+                $delStmt = $pdo->prepare("DELETE FROM disaster_photos WHERE id = ?");
+                $delStmt->execute([$photoId]);
+            }
+        }
+    }
+
+    // C. Masukkan Foto Baru ke Database
     if (!empty($uploadedPhotos)) {
         $photoStmt = $pdo->prepare("INSERT INTO disaster_photos (disaster_id, filename, original_filename, file_path) VALUES (?, ?, ?, ?)");
         foreach ($uploadedPhotos as $photo) {
@@ -194,8 +215,10 @@ try {
 
     $pdo->commit();
 
-    // Siapkan pesan respons
     $msg = "Laporan berhasil diperbarui dan status kembali menjadi PENDING.";
+    if (isset($_POST['delete_photos']) && count($_POST['delete_photos']) > 0) {
+        $msg .= " (" . count($_POST['delete_photos']) . " foto dihapus)";
+    }
     if (count($uploadedPhotos) > 0) {
         $msg .= " (" . count($uploadedPhotos) . " foto baru ditambahkan)";
     }
