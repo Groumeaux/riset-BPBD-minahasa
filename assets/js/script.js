@@ -328,7 +328,7 @@ function handleFormSubmit(event) {
     }
 
     // Send data to server
-    fetch('save_disaster.php', {
+    fetch('api/save_disaster.php', {
         method: 'POST',
         body: formData
     })
@@ -385,7 +385,7 @@ function handleLogin(event) {
     formData.append('username', username);
     formData.append('password', password);
 
-    fetch('login.php', {
+    fetch('api/login.php', {
         method: 'POST',
         body: formData
     })
@@ -516,7 +516,7 @@ function filterAndRenderReports() {
  * Load disaster data from server
  */
 function loadAndDisplayAllReports() {
-    fetch('get_disasters.php')
+    fetch('api/get_disasters.php')
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -554,7 +554,7 @@ function handleLogout() {
                 timer: 1500,
                 showConfirmButton: false
             }).then(() => {
-                window.location.href = 'logout.php';
+                window.location.href = 'api/logout.php';
             });
         }
     });
@@ -1553,7 +1553,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const id = e.target.closest('.edit-btn').getAttribute('data-id');
             
             // Ambil data dari server
-            fetch(`get_single_disaster.php?id=${id}`)
+            fetch(`api/get_single_disaster.php?id=${id}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
@@ -1671,7 +1671,7 @@ function handleDeleteDisaster(id) {
             const formData = new FormData();
             formData.append('id', id);
 
-            fetch('delete_disaster.php', {
+            fetch('api/delete_disaster.php', {
                 method: 'POST',
                 body: formData
             })
@@ -1720,7 +1720,7 @@ function handleDeleteDisaster(id) {
             const modalElement = document.getElementById('edit-modal');
             const modal = bootstrap.Modal.getInstance(modalElement);
 
-            fetch('edit_disaster.php', {
+            fetch('api/edit_disaster.php', {
                 method: 'POST',
                 body: formData
             })

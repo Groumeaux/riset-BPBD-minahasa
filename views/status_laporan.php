@@ -1,10 +1,10 @@
 <?php
 session_start();
-require_once 'config.php';
+require_once '../config/config.php';
 
 // Cek User Login
 if (!isset($_SESSION['user_id'])) {
-    header('Location: index.php');
+    header('Location: ../index.php');
     exit;
 }
 
@@ -18,7 +18,7 @@ $username = $_SESSION['username'] ?? 'User';
     <title>Status Laporan Saya - BPBD</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="../assets/css/style.css">
     <!-- SweetAlert2 untuk Popup Alasan & Notifikasi -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.1/dist/sweetalert2.min.css">
 </head>
@@ -40,7 +40,7 @@ $username = $_SESSION['username'] ?? 'User';
                         </div>
                     </div>
                     <div>
-                        <a href="index.php" class="btn btn-outline-secondary me-2">
+                        <a href="../index.php" class="btn btn-outline-secondary me-2">
                             &larr; Kembali ke Dashboard
                         </a>
                     </div>
@@ -183,7 +183,7 @@ $username = $_SESSION['username'] ?? 'User';
                 
                 // Gunakan endpoint yang sudah ada (edit_disaster.php)
                 // Endpoint ini SUDAH di-set untuk mengubah status jadi 'pending'
-                fetch('edit_disaster.php', {
+                fetch('../api/edit_disaster.php', {
                     method: 'POST',
                     body: formData
                 })
@@ -203,7 +203,7 @@ $username = $_SESSION['username'] ?? 'User';
         });
 
         function loadMyReports() {
-            fetch('get_user_reports.php')
+            fetch('../api/get_user_reports.php')
             .then(res => res.json())
             .then(data => {
                 const tbody = document.getElementById('my-reports-body');
@@ -278,7 +278,7 @@ $username = $_SESSION['username'] ?? 'User';
         // Fungsi Buka Modal Edit
         function openEdit(id) {
             // Fetch single data untuk isi form
-            fetch(`get_single_disaster.php?id=${id}`)
+            fetch(`../api/get_single_disaster.php?id=${id}`)
                 .then(res => res.json())
                 .then(resp => {
                     if (resp.success) {

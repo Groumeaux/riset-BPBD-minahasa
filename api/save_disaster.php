@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once 'config.php';
+require_once '../config/config.php';
 
 // Fungsi helper thumbnail (Khusus JPG)
 if (!function_exists('create_thumbnail')) {

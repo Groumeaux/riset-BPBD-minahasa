@@ -1,10 +1,10 @@
 <?php
 session_start();
-require_once 'config.php';
+require_once '../config/config.php';
 
 // Cek Keamanan: Hanya Role 'head' yang boleh akses
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'head') {
-    header('Location: index.php');
+    header('Location: ../index.php');
     exit;
 }
 
@@ -40,8 +40,8 @@ $username = $_SESSION['username'] ?? '';
                         </div>
                     </div>
                     <div>
-                        <a href="index.php" class="btn btn-bpbd-primary me-2">Kembali ke Dashboard</a>
-                        <button id="logout-btn" class="btn btn-bpbd-secondary" onclick="window.location.href='logout.php'">Logout</button>
+                        <a href="../index.php" class="btn btn-bpbd-primary me-2">Kembali ke Dashboard</a>
+                        <button id="logout-btn" class="btn btn-bpbd-secondary" onclick="window.location.href='../api/logout.php'">Logout</button>
                     </div>
                 </div>
             </header>
@@ -224,7 +224,7 @@ $username = $_SESSION['username'] ?? '';
 
         // --- 2. FUNGSI LOAD DATA ---
         function loadData() {
-            fetch('get_disasters.php')
+            fetch('../api/get_disasters.php')
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
@@ -402,7 +402,7 @@ $username = $_SESSION['username'] ?? '';
             formData.append('action', action);
             if(reason) formData.append('reason', reason);
 
-            fetch('validation_process.php', { method: 'POST', body: formData })
+            fetch('../api/validation_process.php', { method: 'POST', body: formData })
                 .then(r => r.json())
                 .then(data => {
                     if(data.success) {

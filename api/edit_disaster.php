@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once 'config.php';
+require_once '../config/config.php';
 
 // --- FUNGSI HELPER: MEMBUAT THUMBNAIL OTOMATIS (KHUSUS JPG) ---
 if (!function_exists('create_thumbnail')) {
