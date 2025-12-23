@@ -137,23 +137,27 @@ if (isset($_FILES['photos']) && is_array($_FILES['photos']['name'])) {
         }
 
         if (!$isValidType) {
-            // [NEW] Simpan pesan error jika format salah
             $uploadErrors[] = "File $filename ditolak (Hanya format JPG/JPEG yang diperbolehkan).";
             continue;
         }
 
         $uniqueFilename = uniqid('disaster_', true) . '.jpg';
-        $filePath = $uploadDir . $uniqueFilename;
+        
+        // --- FIX: USE $fsUploadDir INSTEAD OF $uploadDir ---
+        $filePath = $fsUploadDir . $uniqueFilename; 
 
         if (move_uploaded_file($fileTmp, $filePath)) {
             $thumbFilename = 'thumb_' . $uniqueFilename;
-            $thumbPath = $uploadDir . $thumbFilename;
+            
+            // --- FIX: USE $fsUploadDir HERE TOO ---
+            $thumbPath = $fsUploadDir . $thumbFilename;
+            
             create_thumbnail($filePath, $thumbPath);
 
             $uploadedPhotos[] = [
                 'filename' => $uniqueFilename,
                 'original_filename' => $filename,
-                'file_path' => $dbUploadDir . $uniqueFilename
+                'file_path' => $dbUploadDir . $uniqueFilename // Database stores relative path
             ];
         } else {
              $uploadErrors[] = "Gagal memindahkan file $filename ke folder uploads.";
@@ -195,13 +199,11 @@ try {
 
     $pdo->commit();
 
-    // [NEW] Buat pesan sukses yang informatif
     $message = 'Laporan berhasil disimpan.';
     if (count($uploadedPhotos) > 0) {
         $message .= ' (' . count($uploadedPhotos) . ' foto berhasil diupload)';
     }
     
-    // [NEW] Tambahkan peringatan jika ada file yang ditolak
     if (count($uploadErrors) > 0) {
         $message .= "\n\nPERINGATAN: Beberapa file dilewati:\n- " . implode("\n- ", $uploadErrors);
     }

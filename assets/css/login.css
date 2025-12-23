@@ -1,16 +1,15 @@
-/* Login page styles - BPBD Theme */
 #login-page {
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
-    background-image: url('../../uploads/login-background.webp'); /* Background image */
+    background-image: url('../../uploads/login-background.webp'); 
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
     color: white;
     position: relative;
-    overflow: hidden; /* Prevent scrolling on login page */
+    overflow: hidden; 
 }
 
 #login-page::before {
@@ -20,15 +19,15 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 73, 157, 0.3); /* Semi-transparent BPBD blue overlay */
-    backdrop-filter: blur(8px); /* Glass blur effect */
-    -webkit-backdrop-filter: blur(8px); /* Safari support */
+    background: rgba(0, 73, 157, 0.3);
+    backdrop-filter: blur(8px); 
+    -webkit-backdrop-filter: blur(8px);
     z-index: 1;
 }
 
 .login-container {
     position: relative;
-    z-index: 2; /* Above the overlay */
+    z-index: 2; 
 }
 
 .login-container {
@@ -88,33 +87,32 @@
 }
 
 #login-page .bg-white {
-    background-color: rgba(255, 255, 255, 0.95) !important; /* Semi-transparent white for form */
-    color: #333; /* Dark text for readability */
+    background-color: rgba(255, 255, 255, 0.95) !important; 
+    color: #333; 
     border: 2px solid rgba(255, 255, 255, 0.3);
     width: 100%;
     max-width: 400px;
 }
 
 #login-page h2 {
-    color: #e60013; /* BPBD red for title */
+    color: #e60013; 
     font-weight: bold;
 }
 
 #login-page .btn-primary {
-    background-color: #00499d; /* BPBD dark blue button */
+    background-color: #00499d; 
     border-color: #00499d;
 }
 
 #login-page .btn-primary:hover {
-    background-color: #003d7a; /* Darker BPBD blue on hover */
+    background-color: #003d7a; 
     border-color: #003d7a;
 }
 
 #login-page .form-label {
-    color: #333; /* Dark labels */
+    color: #333;
 }
 
-/* Responsive design for mobile */
 @media (max-width: 768px) {
     .login-container {
         flex-direction: column;

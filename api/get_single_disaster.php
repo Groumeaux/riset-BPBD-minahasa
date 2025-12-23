@@ -4,7 +4,6 @@ require_once '../config/config.php';
 
 header('Content-Type: application/json');
 
-// Keamanan: Pastikan pengguna login
 if (!isset($_SESSION['user_id'])) {
     echo json_encode(['success' => false, 'message' => 'Not authenticated']);
     exit;
@@ -27,7 +26,6 @@ try {
         exit;
     }
 
-    // Keamanan: Pastikan pengguna adalah 'head' ATAU pemilik laporan
     $role = strtolower($_SESSION['role'] ?? 'guest');
     $userId = $_SESSION['user_id'] ?? -1;
 
@@ -36,12 +34,10 @@ try {
         exit;
     }
 
-    // [NEW] Fetch Photos associated with this disaster
     $photoStmt = $pdo->prepare("SELECT id, file_path, original_filename FROM disaster_photos WHERE disaster_id = ?");
     $photoStmt->execute([$id]);
     $disaster['photos'] = $photoStmt->fetchAll();
 
-    // Jika lolos semua pemeriksaan, kirim data
     echo json_encode(['success' => true, 'data' => $disaster]);
 
 } catch (PDOException $e) {

@@ -1,6 +1,3 @@
-    // --- KONFIGURASI DAN DATA AWAL ---
-
-// 1. Definisikan Bobot Kriteria (W) - Total harus 1.0
 const weights = {
     jiwa: 0.40,
     kk: 0.25,
@@ -8,7 +5,6 @@ const weights = {
     jenis: 0.15,
 };
 
-// 2. Definisikan Skor Kuantifikasi untuk Kriteria Kualitatif
 const quantificationScores = {
     kerusakan: { 'Ringan': 1, 'Sedang': 2, 'Berat': 3 },
     jenis: {
@@ -21,14 +17,11 @@ const quantificationScores = {
     }
 };
 
-// 3. Data Global
-let allReportData = []; // Variabel global untuk menyimpan data dari server
+let allReportData = [];
 
-// Daftar Opsi untuk Dropdown
 const bencanaOptions = ['Banjir', 'Tanah Longsor', 'Angin Puting Beliung', 'Gempa Bumi', 'Kebakaran', 'Kebakaran Hutan'];
 const insidenOptions = ['Pohon Tumbang', 'Orang Hilang'];
 
-// Data Lokasi Minahasa
 const minahasaLocations = {
     "Eris": {
         desa: ["Eris", "Maumbi", "Ranomerut", "Tandengan", "Tandengan Satu", "Telap", "Toliang Oki", "Watumea"]
@@ -110,9 +103,6 @@ const minahasaLocations = {
     }
 };
 
-/**
- * Format date to Indonesian format: "16 Oktober 2025"
- */
 function formatDate(dateString) {
     if (!dateString || dateString === '0000-00-00') {
         return 'Tanggal tidak valid';
@@ -125,28 +115,20 @@ function formatDate(dateString) {
     return `${day} ${month} ${year}`;
 }
 
-// Helper to get Indonesian Month Name from index (0-11)
 function getIndonesianMonthName(monthIndex) {
     const monthNames = ["JANUARI", "FEBRUARI", "MARET", "APRIL", "MEI", "JUNI", "JULI", "AGUSTUS", "SEPTEMBER", "OKTOBER", "NOVEMBER", "DESEMBER"];
     return monthNames[monthIndex];
 }
 
-// --- FUNGSI LOGIKA SAW (BENCANA) ---
-
-/**
- * Fungsi inti yang menjalankan algoritma Simple Additive Weighting (SAW)
- */
 function runSAW(data) {
     if (data.length === 0) return [];
 
-    // Langkah 1: Kuantifikasi
     const quantifiedData = data.map(item => ({
         ...item,
         skorKerusakan: quantificationScores.kerusakan[item.tingkatKerusakan] || 0,
         skorJenis: quantificationScores.jenis[item.jenisBencana] || 0
     }));
 
-    // Langkah 2: Cari nilai maksimum (Normalisasi)
     const maxValues = {
         jiwa: Math.max(1, ...quantifiedData.map(d => d.jiwaTerdampak)),
         kk: Math.max(1, ...quantifiedData.map(d => d.kkTerdampak)),
@@ -154,7 +136,6 @@ function runSAW(data) {
         jenis: Math.max(1, ...quantifiedData.map(d => d.skorJenis))
     };
 
-    // Langkah 3: Normalisasi
     const normalizedData = quantifiedData.map(item => ({
         ...item,
         normJiwa: (item.jiwaTerdampak || 0) / maxValues.jiwa,
@@ -163,7 +144,6 @@ function runSAW(data) {
         normJenis: (item.skorJenis || 0) / maxValues.jenis,
     }));
 
-    // Langkah 4: Hitung Skor Akhir (V)
     const scoredData = normalizedData.map(item => {
         const score =
             (item.normJiwa * weights.jiwa) +
@@ -173,13 +153,11 @@ function runSAW(data) {
         return { ...item, finalScore: score };
     });
 
-    // Langkah 5: Urutkan
     const sortedData = scoredData.sort((a, b) => b.finalScore - a.finalScore);
 
     return sortedData;
 }
 
-// Fungsi Helper untuk Alert Alasan Penolakan
 window.showRejectReason = function(reason) {
     Swal.fire({
         title: 'Alasan Penolakan',
@@ -190,13 +168,8 @@ window.showRejectReason = function(reason) {
     });
 };
 
-// --- FUNGSI RENDER TABEL ---
-
-/**
- * Menampilkan data BENCANA (SAW) ke tabel #report-table-body-bencana
- */
 function generateBencanaTable(data) {
-    const rankedData = runSAW(data); // Jalankan SAW
+    const rankedData = runSAW(data); 
     const tableBody = document.getElementById('report-table-body-bencana');
     tableBody.innerHTML = '';
 
@@ -253,9 +226,6 @@ function generateBencanaTable(data) {
     });
 }
 
-/**
- * Menampilkan data INSIDEN (Kronologis) ke tabel #report-table-body-insiden
- */
 function generateInsidenTable(data) {
     const tableBody = document.getElementById('report-table-body-insiden');
     tableBody.innerHTML = '';
@@ -265,7 +235,6 @@ function generateInsidenTable(data) {
         return;
     }
 
-    // Urutkan berdasarkan tanggal terbaru
     data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
     data.forEach(item => {
@@ -303,17 +272,11 @@ function generateInsidenTable(data) {
     });
 }
 
-// --- FUNGSI INTERAKSI FORM (SUBMIT & LOGIN) ---
-
-/**
- * Menangani submit form untuk menambah data bencana baru
- */
 function handleFormSubmit(event) {
     event.preventDefault();
     const form = event.target;
     const formData = new FormData(form);
     
-    // Validasi manual untuk input yang mungkin non-required (karena disembunyikan)
     const kategori = formData.get('kategoriLaporan');
     if (kategori === 'bencana') {
         if (!formData.get('jiwaTerdampak') || !formData.get('kkTerdampak')) {
@@ -327,7 +290,6 @@ function handleFormSubmit(event) {
         }
     }
 
-    // Send data to server
     fetch('api/save_disaster.php', {
         method: 'POST',
         body: formData
@@ -342,7 +304,6 @@ function handleFormSubmit(event) {
                 confirmButtonColor: '#00499d'
             });
             form.reset();
-            // Reset form dinamis ke default
             const formBencana = document.getElementById('form-grup-bencana');
             const formInsiden = document.getElementById('form-grup-insiden');
             if(formBencana && formInsiden) {
@@ -352,7 +313,7 @@ function handleFormSubmit(event) {
                 document.getElementById('kkTerdampak').required = true;
             }
             
-            loadAndDisplayAllReports(); // Memuat ulang SEMUA data
+            loadAndDisplayAllReports(); 
         } else {
             Swal.fire({
                 icon: 'error',
@@ -373,9 +334,6 @@ function handleFormSubmit(event) {
     });
 }
 
-/**
- * Menangani login form
- */
 function handleLogin(event) {
     event.preventDefault();
     const username = document.getElementById('username').value;
@@ -422,18 +380,13 @@ function handleLogin(event) {
     });
 }
 
-// --- FUNGSI FILTER & LOAD DATA ---
-
-/**
- * Mengisi Dropdown Tahun secara dinamis
- */
 function populateYearDropdown() {
     const yearSelect = document.getElementById('filter-year');
     if (!yearSelect) return;
 
     const currentYear = new Date().getFullYear();
-    const startYear = currentYear - 2; // Mulai dari 2 tahun lalu
-    const endYear = currentYear + 2;   // Sampai 1 tahun ke depan
+    const startYear = currentYear - 2; 
+    const endYear = currentYear + 2;   
 
     yearSelect.innerHTML = '';
     for (let y = startYear; y <= endYear; y++) {
@@ -445,31 +398,22 @@ function populateYearDropdown() {
     }
 }
 
-/**
- * Filter data berdasarkan bulan dan tahun yang dipilih
- */
 function filterDataByMonth(data, filterValue) {
     if (!filterValue) return data;
     return data.filter(item => {
-        // Asumsi item.disaster_date format 'YYYY-MM-DD'
         return item.disaster_date && item.disaster_date.startsWith(filterValue);
     });
 }
 
-/**
- * Render tabel dengan filter Tahun & Bulan
- */
 function filterAndRenderReports() {
     const yearSelect = document.getElementById('filter-year');
     const monthSelect = document.getElementById('filter-month');
     
-    // Jika elemen filter tidak ada (misal di halaman login), hentikan
     if (!yearSelect || !monthSelect) return;
 
     const year = yearSelect.value;
     const month = monthSelect.value;
     
-    // Gabungkan menjadi format YYYY-MM jika bulan dipilih, atau YYYY jika setahun penuh
     let filterValue = year;
     if (month) {
         filterValue += '-' + month;
@@ -477,11 +421,9 @@ function filterAndRenderReports() {
 
     const filteredData = filterDataByMonth(allReportData, filterValue);
 
-    // 1. Pisahkan data berdasarkan kategori
     const bencanaData = filteredData.filter(d => d.kategori_laporan === 'bencana' || !d.kategori_laporan);
     const insidenData = filteredData.filter(d => d.kategori_laporan === 'insiden');
 
-    // 2. Hancurkan DataTable yang ada
     if ($.fn.DataTable.isDataTable('#disaster-report-table')) {
         $('#disaster-report-table').DataTable().destroy();
     }
@@ -489,11 +431,9 @@ function filterAndRenderReports() {
         $('#insiden-report-table').DataTable().destroy();
     }
 
-    // 3. Generate HTML untuk setiap tabel
     generateBencanaTable(bencanaData);
     generateInsidenTable(insidenData);
 
-    // Re-init DataTable
     setTimeout(function() {
         if (bencanaData.length > 0) {
             $('#disaster-report-table').DataTable({
@@ -512,16 +452,13 @@ function filterAndRenderReports() {
     }, 10);
 }
 
-/**
- * Load disaster data from server
- */
 function loadAndDisplayAllReports() {
     fetch('api/get_disasters.php')
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                allReportData = data.data; // Simpan semua data di global
-                filterAndRenderReports(); // Tampilkan dengan filter default
+                allReportData = data.data; 
+                filterAndRenderReports(); 
             } else {
                 console.error('Error loading data:', data.message);
             }
@@ -531,9 +468,6 @@ function loadAndDisplayAllReports() {
         });
 }
 
-/**
- * Handle logout
- */
 function handleLogout() {
     Swal.fire({
         title: 'Konfirmasi Logout',
@@ -560,11 +494,9 @@ function handleLogout() {
     });
 }
 
-// Populate Kecamatan Dropdown
 const kecamatanSelect = document.getElementById('kecamatan');
 const lokasiSelect = document.getElementById('lokasi');
 if (kecamatanSelect && lokasiSelect) {
-    // Populate kecamatan options
     Object.keys(minahasaLocations).forEach(kecamatan => {
         const option = document.createElement('option');
         option.value = kecamatan;
@@ -572,7 +504,6 @@ if (kecamatanSelect && lokasiSelect) {
         kecamatanSelect.appendChild(option);
     });
 
-    // Handle kecamatan change to populate desa/kelurahan
     kecamatanSelect.addEventListener('change', function() {
         const selectedKecamatan = this.value;
         lokasiSelect.innerHTML = '<option value="">Pilih Desa/Kelurahan</option>';
@@ -580,7 +511,6 @@ if (kecamatanSelect && lokasiSelect) {
         if (selectedKecamatan && minahasaLocations[selectedKecamatan]) {
             const villages = minahasaLocations[selectedKecamatan];
 
-            // Add desa options first
             if (villages.desa) {
                 villages.desa.forEach(location => {
                     const option = document.createElement('option');
@@ -590,7 +520,6 @@ if (kecamatanSelect && lokasiSelect) {
                 });
             }
 
-            // Add kelurahan options
             if (villages.kelurahan) {
                 villages.kelurahan.forEach(location => {
                     const option = document.createElement('option');
@@ -603,14 +532,15 @@ if (kecamatanSelect && lokasiSelect) {
     });
 }
 
-// --- FUNGSI CETAK LAPORAN ---
-
-/**
- * [CETAK 1] Laporan Bencana (SAW) - Filter Tahunan/Bulanan
- */
 function handlePrintReport() {
     const year = document.getElementById('filter-year').value;
     const month = document.getElementById('filter-month').value;
+
+    const isViews = window.location.pathname.includes('/views/');
+    const uploadsPath = isViews ? '../uploads/' : 'uploads/';
+    
+    const logoKabUrl = new URL(uploadsPath + 'logokab-minahasa.png', window.location.href).href;
+    const logoBpbdUrl = new URL(uploadsPath + 'logobpbd-minahasa.png', window.location.href).href;
 
     let filterValue = year;
     if (month) filterValue += '-' + month;
@@ -621,9 +551,6 @@ function handlePrintReport() {
     );
     const rankedData = runSAW(bencanaData);
 
-    /* ===============================
-       PERIODE & TANGGAL LAPORAN
-    =============================== */
     let periodText = `Tahun ${year}`;
     if (month) {
         periodText = `Bulan ${getIndonesianMonthName(parseInt(month) - 1)} ${year}`;
@@ -636,9 +563,6 @@ function handlePrintReport() {
     ];
     const reportDate = `${today.getDate()} ${monthNames[today.getMonth()]} ${today.getFullYear()}`;
 
-    /* ===============================
-       BUILD TABLE ROWS
-    =============================== */
     let tableRows = '';
 
     if (rankedData.length === 0) {
@@ -692,9 +616,6 @@ function handlePrintReport() {
         });
     }
 
-    /* ===============================
-       FINAL PRINT HTML
-    =============================== */
     const printContent = `
         <style>
             @page {
@@ -756,16 +677,14 @@ function handlePrintReport() {
         <div class="header">
             <table style="width: 100%; border-collapse: collapse; border: none;">
                 <tr>
-                    <!-- LEFT LOGO -->
                     <td style="width: 80px; text-align: left; vertical-align: middle; border: none;">
                         <img
-                            src="../../uploads/logokab-minahasa.png"
+                            src="${logoKabUrl}" 
                             alt="Logo Kabupaten Minahasa"
                             style="width: 70px; height: auto;"
                         >
                     </td>
 
-                        <!-- CENTER TEXT -->
                         <td style="text-align: center; vertical-align: middle; border: none;">
                             <div style="font-size: 14px; font-weight: bold;">
                                 PEMERINTAH KABUPATEN MINAHASA
@@ -781,10 +700,9 @@ function handlePrintReport() {
                             </div>
                         </td>
 
-                    <!-- RIGHT LOGO -->
                     <td style="width: 80px; text-align: right; vertical-align: middle; border: none;">
                         <img
-                            src="../../uploads/logobpbd-minahasa.png"
+                            src="${logoBpbdUrl}" 
                             alt="Logo BPBD"
                             style="width: 70px; height: auto;"
                         >
@@ -843,30 +761,26 @@ function handlePrintReport() {
         </div>
     `;
 
-    /* ===============================
-       PRINT USING HIDDEN IFRAME
-    =============================== */
-
     const iframe = document.createElement('iframe');
     iframe.style.display = 'none';
     document.body.appendChild(iframe);
     iframe.contentDocument.write(printContent);
     iframe.contentWindow.print();
-    // Remove iframe after printing
     setTimeout(() => {
         document.body.removeChild(iframe);
     }, 1000);
 }
 
-
-
-/**
- * [CETAK 2] Laporan Insiden (Kronologis)
- */
 function handlePrintInsidenReport() {
     const year = document.getElementById('filter-year').value;
     const month = document.getElementById('filter-month').value;
     
+    const isViews = window.location.pathname.includes('/views/');
+    const uploadsPath = isViews ? '../uploads/' : 'uploads/';
+    
+    const logoKabUrl = new URL(uploadsPath + 'logokab-minahasa.png', window.location.href).href;
+    const logoBpbdUrl = new URL(uploadsPath + 'logobpbd-minahasa.png', window.location.href).href;
+
     let filterValue = year;
     if (month) filterValue += '-' + month;
 
@@ -874,13 +788,11 @@ function handlePrintInsidenReport() {
     const insidenData = filteredData.filter(d => d.kategori_laporan === 'insiden');
     insidenData.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
-    // Judul Periode Dinamis
     let periodText = `Tahun ${year}`;
     if (month) {
         periodText = `Bulan ${getIndonesianMonthName(parseInt(month) - 1)} ${year}`;
     }
 
-    const previewContent = document.getElementById('preview-content');
     const today = new Date();
     const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
     const reportDate = `${today.getDate()} ${monthNames[today.getMonth()]} ${today.getFullYear()}`;
@@ -893,110 +805,173 @@ function handlePrintInsidenReport() {
             let photoCell = '<span style="font-size: 10px; color: #666;">Tidak ada foto</span>';
             if (item.photos && item.photos.length > 0) {
                 const imageUrl = new URL(item.photos[0].file_path, window.location.href).href;
-                photoCell = `<img src="${imageUrl}" alt="Foto Insiden" style="width: 100%; height: 100%; object-fit: cover;">`;
+                photoCell = `<img src="${imageUrl}" alt="Foto Insiden" style="width: 100px; height: 70px; object-fit: cover;">`;
             }
             tableRows += `
-                <tr style="border-bottom: 1px solid #ddd;">
-                    <td style="padding: 8px;">${item.jenisBencana}</td>
-                    <td style="padding: 8px;">${item.lokasi}</td>
-                    <td style="padding: 8px; font-size: 11px;">${item.keterangan || 'N/A'}</td>
-                    <td style="padding: 8px; text-align: center;">${formatDate(item.disaster_date)}</td>
-                    <td style="padding: 0; text-align: center; width: 100px;">${photoCell}</td>
+                <tr>
+                    <td style="text-align: left;">${item.jenisBencana}</td>
+                    <td style="text-align: left;">${item.lokasi}</td>
+                    <td style="text-align: left; font-size: 11px;">${item.keterangan || 'N/A'}</td>
+                    <td style="text-align: center;">${formatDate(item.disaster_date)}</td>
+                    <td style="text-align: center;">${photoCell}</td>
                 </tr>`;
         });
     }
 
     const printContent = `
-        <div style="font-family: Arial, sans-serif; width: 100%; font-size: 14px;">
-            <div style="margin-bottom: 20px;">
-                <table style="width: 100%; border-collapse: collapse; border: none;">
-                    <tr>
-                        <!-- LEFT LOGO -->
-                        <td style="width: 80px; text-align: left; vertical-align: middle; border: none;">
-                            <img
-                                src="../../uploads/logokab-minahasa.png"
-                                alt="Logo Kabupaten Minahasa"
-                                style="width: 70px; height: auto;"
-                            >
-                        </td>
+        <style>
+            @page {
+                size: A4;
+                margin: 20mm;
+            }
 
-                        <!-- CENTER TEXT -->
-                        <td style="text-align: center; vertical-align: middle; border: none;">
-                            <div style="font-size: 14px; font-weight: bold;">
-                                PEMERINTAH KABUPATEN MINAHASA
-                            </div>
-                            <div style="font-size: 16px; font-weight: bold;">
-                                BADAN PENANGGULANGAN BENCANA DAERAH
-                            </div>
-                            <div style="font-size: 9px; margin-top: 3px;">
-                                Alamat: Kompleks Stadion Maesa Kelurahan Wewelen (Tondano)
-                            </div>
-                            <div style="font-size: 9px;">
-                                Website: www.minahasa.go.id E-mail: pemkab.minahasa@minahasa.go.id
-                            </div>
-                        </td>
+            body {
+                font-family: Arial, sans-serif;
+                font-size: 14px;
+                color: #000;
+            }
 
-                        <!-- RIGHT LOGO -->
-                        <td style="width: 80px; text-align: right; vertical-align: middle; border: none;">
-                            <img
-                                src="../../uploads/logobpbd-minahasa.png"
-                                alt="Logo BPBD"
-                                style="width: 70px; height: auto;"
-                            >
-                        </td>
-                    </tr>
-                </table>
+            table {
+                width: 100%;
+                border-collapse: collapse;
+            }
 
-                <hr style="border: 1px solid #000; margin-top: 8px;">
-            </div>
-            <h1 style="text-align: center; font-size: 18px; text-decoration: underline; margin-bottom: 20px;">LAPORAN REKAPITULASI INSIDEN DARURAT</h1>
-            <p style="text-align: center; margin-top: -10px; margin-bottom: 30px;">Periode: ${periodText}</p>
-            <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
-                <thead>
-                    <tr style="background-color: #f2f2f2; text-align: left;">
-                        <th style="padding: 8px; border: 1px solid #ddd;">Jenis Insiden</th>
-                        <th style="padding: 8px; border: 1px solid #ddd;">Lokasi</th>
-                        <th style="padding: 8px; border: 1px solid #ddd;">Keterangan</th>
-                        <th style="padding: 8px; border: 1px solid #ddd; text-align: center;">Tanggal</th>
-                        <th style="padding: 8px; border: 1px solid #ddd; text-align: center;">Dokumentasi</th>
-                    </tr>
-                </thead>
-                <tbody>${tableRows}</tbody>
+            th, td {
+                border: 1px solid #000;
+                padding: 6px;
+                vertical-align: middle;
+            }
+
+            thead {
+                display: table-header-group;
+            }
+
+            .header {
+                margin-bottom: 20px;
+            }
+
+            .title {
+                text-align: center;
+                font-weight: bold;
+                text-decoration: underline;
+                margin: 20px 0 5px;
+            }
+
+            .periode {
+                text-align: center;
+                margin-bottom: 20px;
+            }
+
+            .signature-wrapper {
+                margin-top: 30px;
+                display: flex;
+                justify-content: flex-end;
+                page-break-inside: avoid;
+            }
+
+            .signature {
+                width: 300px;
+                text-align: center;
+                line-height: 1.3;
+            }
+        </style>
+
+        <div class="header">
+            <table style="width: 100%; border-collapse: collapse; border: none;">
+                <tr>
+                    <td style="width: 80px; text-align: left; vertical-align: middle; border: none;">
+                        <img
+                            src="${logoKabUrl}"
+                            alt="Logo Kabupaten Minahasa"
+                            style="width: 70px; height: auto;"
+                        >
+                    </td>
+
+                    <td style="text-align: center; vertical-align: middle; border: none;">
+                        <div style="font-size: 14px; font-weight: bold;">
+                            PEMERINTAH KABUPATEN MINAHASA
+                        </div>
+                        <div style="font-size: 16px; font-weight: bold;">
+                            BADAN PENANGGULANGAN BENCANA DAERAH
+                        </div>
+                        <div style="font-size: 9px; margin-top: 3px;">
+                            Alamat: Kompleks Stadion Maesa Kelurahan Wewelen (Tondano)
+                        </div>
+                        <div style="font-size: 9px;">
+                            Website: www.minahasa.go.id E-mail: pemkab.minahasa@minahasa.go.id
+                        </div>
+                    </td>
+
+                    <td style="width: 80px; text-align: right; vertical-align: middle; border: none;">
+                        <img
+                            src="${logoBpbdUrl}"
+                            alt="Logo BPBD"
+                            style="width: 70px; height: auto;"
+                        >
+                    </td>
+                </tr>
             </table>
-            <!-- TTD Section Updated with Flexbox -->
-            <div style="display: flex; justify-content: flex-end; page-break-inside: avoid;">
-                <div style="text-align: center; width: 250px;">
-                    <p style="margin-bottom: 60px;">Tondano, ${reportDate}<br><br>Kepala Badan Penanggulangan Bencana<br>Daerah Kabupaten Minahasa</p>
-                    <p style="font-weight: bold; text-decoration: underline;">LONA O.K. WATTIE, S.STP, M.AP</p>
-                    <p>Pembina Utama Muda, IV/c</p>
-                    <p>NIP. 19791007 199810 1001</p>
+
+            <hr style="border: 1px solid #000; margin-top: 8px;">
+        </div>
+
+        <div class="title">LAPORAN REKAPITULASI INSIDEN DARURAT</div>
+        <div class="periode">Periode: ${periodText}</div>
+
+        <table>
+            <thead>
+                <tr style="background-color: #f2f2f2;">
+                    <th style="width: 20%;">Jenis Insiden</th>
+                    <th style="width: 20%;">Lokasi</th>
+                    <th style="width: 30%;">Keterangan</th>
+                    <th style="width: 15%;">Tanggal</th>
+                    <th style="width: 15%;">Dokumentasi</th>
+                </tr>
+            </thead>
+            <tbody>${tableRows}</tbody>
+        </table>
+
+        <div class="signature-wrapper">
+            <div class="signature">
+                <div style="margin-bottom: 60px;">
+                    Tondano, ${reportDate}<br><br>
+                    Kepala Badan Penanggulangan Bencana<br>
+                    Daerah Kabupaten Minahasa
+                </div>
+
+                <div style="font-weight: bold; text-decoration: underline;">
+                    LONA O.K. WATTIE, S.STP, M.AP
+                </div>
+                <div>
+                    Pembina Utama Muda, IV/c
+                </div>
+                <div>
+                    NIP. 19791007 199810 1001
                 </div>
             </div>
-        </div>`;
-
-    /* ===============================
-       PRINT USING HIDDEN IFRAME
-    =============================== */
+        </div>
+    `;
 
     const iframe = document.createElement('iframe');
     iframe.style.display = 'none';
     document.body.appendChild(iframe);
     iframe.contentDocument.write(printContent);
     iframe.contentWindow.print();
-    // Remove iframe after printing
+    
     setTimeout(() => {
         document.body.removeChild(iframe);
     }, 1000);
 }
 
-/**
- * [CETAK 3] Laporan Kumulatif (Matrix Bulanan) - PER TAHUN (Mengabaikan filter bulan)
- */
 function handlePrintCumulativeReport() {
-    // Ambil tahun langsung dari dropdown tahun
     const selectedYear = document.getElementById('filter-year').value;
     
-    // Filter data hanya untuk tahun yang dipilih
+    const isViews = window.location.pathname.includes('/views/');
+    const uploadsPath = isViews ? '../uploads/' : 'uploads/';
+    
+    const logoKabUrl = new URL(uploadsPath + 'logokab-minahasa.png', window.location.href).href;
+    const logoBpbdUrl = new URL(uploadsPath + 'logobpbd-minahasa.png', window.location.href).href;
+
     const yearlyData = allReportData.filter(item => {
         if (!item.disaster_date) return false;
         return item.disaster_date.startsWith(selectedYear);
@@ -1059,23 +1034,20 @@ function handlePrintCumulativeReport() {
     const monthNamesIndo = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
     const reportDateString = `${today.getDate()} ${monthNamesIndo[today.getMonth()]} ${today.getFullYear()}`;
 
-    // Matriks Rekap 
 const printContent = `
 <div style="font-family: Arial, sans-serif; width: 100%; font-size: 12px; color: #000;">
 
 <div style="width: 100%; margin-bottom: 10px;">
     <table style="width: 100%; border-collapse: collapse; border: none;">
         <tr>
-            <!-- LEFT LOGO -->
             <td style="width: 80px; text-align: left; vertical-align: middle; border: none;">
                 <img 
-                    src="../../uploads/logokab-minahasa.png"
+                    src="${logoKabUrl}" 
                     alt="Logo Kabupaten Minahasa"
                     style="width: 70px; height: auto;"
                 >
             </td>
 
-            <!-- CENTER TEXT -->
             <td style="text-align: center; vertical-align: middle; border: none;">
                 <div style="font-size: 16px; font-weight: bold;">
                     PEMERINTAH KABUPATEN MINAHASA
@@ -1091,10 +1063,9 @@ const printContent = `
                 </div>
             </td>
 
-            <!-- RIGHT LOGO -->
             <td style="width: 80px; text-align: right; vertical-align: middle; border: none;">
                 <img 
-                    src="../../uploads/logobpbd-minahasa.png"
+                    src="${logoBpbdUrl}" 
                     alt="Logo BPBD"
                     style="width: 70px; height: auto;"
                 >
@@ -1105,14 +1076,12 @@ const printContent = `
     <hr style="border: px solid #000; margin-top: 8px;">
 </div>
 
-    <!-- TITLE -->
     <div style="text-align: center; margin-bottom: 15px;">
         <div style="font-size: 14px; font-weight: bold; text-decoration: underline;">
             REKAPITULASI DATA LAPORAN KEJADIAN BENCANA TAHUN ${selectedYear}
         </div>
     </div>
 
-    <!-- TABLE -->
     <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
         <thead>
             <tr style="background-color: #e0e0e0;">
@@ -1130,10 +1099,8 @@ const printContent = `
         </tbody>
     </table>
 
-    <!-- SIGNATURES -->
     <div style="margin-top: 10px; display: flex; justify-content: space-between; page-break-inside: avoid;">
 
-        <!-- LEFT SIGNATURE -->
         <div style="width: 40%; text-align: center;">
             <div style="margin-bottom: 60px; line-height: 1.3;">
                 Tondano, ${reportDateString}<br>
@@ -1152,7 +1119,6 @@ const printContent = `
             </div>
         </div>
 
-        <!-- RIGHT SIGNATURE -->
         <div style="width: 40%; text-align: center; margin-top: 18px;">
             <div style="margin-bottom: 60px; line-height: 1.3;">
                 Kabid Kedaruratan dan Logistik
@@ -1174,27 +1140,25 @@ const printContent = `
 `;
 
 
-    /* ===============================
-       PRINT USING HIDDEN IFRAME
-    =============================== */
-
     const iframe = document.createElement('iframe');
     iframe.style.display = 'none';
     document.body.appendChild(iframe);
     iframe.contentDocument.write(printContent);
     iframe.contentWindow.print();
-    // Remove iframe after printing
     setTimeout(() => {
         document.body.removeChild(iframe);
     }, 1000);
 }
 
-/**
- * [CETAK 4] Laporan Dampak Korban (KK/Jiwa) - PER TAHUN (Mengabaikan filter bulan)
- */
 function handlePrintImpactReport() {
     const selectedYear = document.getElementById('filter-year').value;
     
+    const isViews = window.location.pathname.includes('/views/');
+    const uploadsPath = isViews ? '../uploads/' : 'uploads/';
+    
+    const logoKabUrl = new URL(uploadsPath + 'logokab-minahasa.png', window.location.href).href;
+    const logoBpbdUrl = new URL(uploadsPath + 'logobpbd-minahasa.png', window.location.href).href;
+
     const yearlyData = allReportData.filter(item => {
         if (!item.disaster_date) return false;
         return item.disaster_date.startsWith(selectedYear);
@@ -1277,20 +1241,17 @@ function handlePrintImpactReport() {
 const printContent = `
 <div style="font-family: Arial, sans-serif; width: 100%; font-size: 10px; color: #000;">
 
-    <!-- HEADER WITH LOGOS -->
     <div style="margin-bottom: 20px;">
         <table style="width: 100%; border-collapse: collapse; border: none;">
             <tr>
-                <!-- LEFT LOGO -->
                 <td style="width: 80px; text-align: left; vertical-align: middle; border: none;">
                     <img 
-                        src="../../uploads/logokab-minahasa.png"
+                        src="${logoKabUrl}" 
                         alt="Logo Kabupaten Minahasa"
                         style="width: 70px; height: auto;"
                     >
                 </td>
 
-                <!-- CENTER HEADER TEXT -->
                 <td style="text-align: center; vertical-align: middle; border: none;">
                     <div style="font-size: 14px; font-weight: bold;">
                         PEMERINTAH KABUPATEN MINAHASA
@@ -1306,10 +1267,9 @@ const printContent = `
                     </div>
                 </td>
 
-                <!-- RIGHT LOGO -->
                 <td style="width: 80px; text-align: right; vertical-align: middle; border: none;">
                     <img 
-                        src="../../uploads/logobpbd-minahasa.png"
+                        src="${logoBpbdUrl}" 
                         alt="Logo BPBD Minahasa"
                         style="width: 70px; height: auto;"
                     >
@@ -1320,14 +1280,12 @@ const printContent = `
         <hr style="border: 1px solid #000; margin-top: 8px;">
     </div>
 
-    <!-- TITLE -->
     <div style="text-align: center; margin-bottom: 15px;">
         <div style="font-size: 12px; font-weight: bold; text-decoration: underline;">
             REKAPITULASI DATA LAPORAN KORBAN TERDAMPAK BENCANA TAHUN ${selectedYear}
         </div>
     </div>
 
-    <!-- TABLE -->
     <table style="width: 100%; border-collapse: collapse; font-size: 9px;">
         <thead>
             <tr style="background-color: #e0e0e0;">
@@ -1348,10 +1306,8 @@ const printContent = `
         </tbody>
     </table>
 
-    <!-- SIGNATURES -->
     <div style="margin-top: 12px; display: flex; justify-content: space-between; page-break-inside: avoid;">
 
-        <!-- LEFT -->
         <div style="width: 40%; text-align: center;">
             <div style="margin-bottom: 50px; line-height: 1.3;">
                 Mengetahui<br>
@@ -1370,7 +1326,6 @@ const printContent = `
             </div>
         </div>
 
-        <!-- RIGHT -->
         <div style="width: 40%; text-align: center;">
             <div style="margin-bottom: 50px; line-height: 1.3;">
                 Tondano, ${reportDateString}<br><br>
@@ -1393,29 +1348,20 @@ const printContent = `
 `;
 
 
-    /* ===============================
-       PRINT USING HIDDEN IFRAME
-    =============================== */
-
     const iframe = document.createElement('iframe');
     iframe.style.display = 'none';
     document.body.appendChild(iframe);
     iframe.contentDocument.write(printContent);
     iframe.contentWindow.print();
-    // Remove iframe after printing
     setTimeout(() => {
         document.body.removeChild(iframe);
     }, 1000);
 }
 
-/**
- * Menangani konfirmasi cetak dari modal preview
- */
 function handleConfirmPrint() {
     const previewContent = document.getElementById('preview-content');
     let printContent = previewContent.innerHTML;
     
-    // Clean up transform scale styles for printing
     printContent = printContent.replace(/transform: scale\(.*?\);/g, '');
     printContent = printContent.replace(/transform-origin:.*?;/g, '');
 
@@ -1433,7 +1379,7 @@ function handleConfirmPrint() {
                     th, td { border: 1px solid #000; padding: 4px; text-align: center; }
                     @page { size: A4 landscape; margin: 1cm; }
                 </style>
-                    <base href="${window.location.origin}/">
+                    <base href="${window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1)}">
             </head>
             <body>
                 ${printContent}
@@ -1449,7 +1395,6 @@ function handleConfirmPrint() {
         printWindow.print();
     };
     
-    // Hide modal
     const modalElement = document.getElementById('preview-modal');
     if (modalElement) {
         const modal = bootstrap.Modal.getInstance(modalElement);
@@ -1459,32 +1404,25 @@ function handleConfirmPrint() {
     }
 }
 
-
-// --- EVENT LISTENERS ---
-
 document.addEventListener('DOMContentLoaded', function() {
-    // 1. Populate Year Dropdown First
     populateYearDropdown();
 
-    // 2. Set Default Values (Bulan Ini)
     const today = new Date();
     const currentMonth = String(today.getMonth() + 1).padStart(2, '0');
     
     const monthSelect = document.getElementById('filter-month');
-    if (monthSelect) monthSelect.value = currentMonth; // Default bulan ini
+    if (monthSelect) monthSelect.value = currentMonth; 
 
-    // 3. Add Event Listeners for Filters
     const yearSelect = document.getElementById('filter-year');
     if (yearSelect) yearSelect.addEventListener('change', filterAndRenderReports);
     if (monthSelect) monthSelect.addEventListener('change', filterAndRenderReports);
 
-    // 4. Load Data
     loadAndDisplayAllReports();
 
     const validateLink = document.getElementById('validate-link');
     if (validateLink) {
         validateLink.addEventListener('click', function(e) {
-            // (Tidak perlu aksi khusus di sini)
+            
         });
     }
 
@@ -1501,7 +1439,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 formGrupInsiden.style.display = 'none';
                 jiwaInput.required = true;
                 kkInput.required = true;
-            } else { // 'insiden'
+            } else { 
                 formGrupBencana.style.display = 'none';
                 formGrupInsiden.style.display = 'block';
                 jiwaInput.required = false;
@@ -1547,35 +1485,60 @@ document.addEventListener('DOMContentLoaded', function() {
         confirmPrintBtn.addEventListener('click', handleConfirmPrint);
     }
 
-    // --- [LOGIKA BARU] Handle Edit Button & Populate Modal ---
     document.addEventListener('click', function(e) {
         if (e.target.closest('.edit-btn')) {
             const id = e.target.closest('.edit-btn').getAttribute('data-id');
             
-            // Ambil data dari server
             fetch(`api/get_single_disaster.php?id=${id}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        const disaster = data.data; // Data laporan utama
-                        const photos = data.data.photos; // [NEW] Data foto dari server
+                        const disaster = data.data; 
+                        const photos = data.data.photos; 
                         
-                        // Isi formulir modal (ID & Data Umum)
                         document.getElementById('edit-disaster-id').value = disaster.id;
+                        
+                        // --- NEW: PARSE LOCATION STRING ---
+                        // Format expected: "Desa Name, Kec. Name" or "Kelurahan Name, Kec. Name"
+                        const fullLoc = disaster.lokasi || "";
+                        let kecFound = "";
+                        let kelFound = fullLoc; // Default fallback
+
+                        // Try to extract Kecamatan from string (e.g. split by ", Kec. ")
+                        if (fullLoc.includes(", Kec. ")) {
+                            const parts = fullLoc.split(", Kec. ");
+                            if (parts.length > 1) {
+                                kecFound = parts[1].trim(); // "Tombulu"
+                                kelFound = fullLoc; // Full string matches the option value
+                            }
+                        }
+
+                        // 1. Set Kecamatan
+                        if (editKecSelect) {
+                            editKecSelect.value = kecFound;
+                            // Trigger change event manually to populate Kelurahan
+                            editKecSelect.dispatchEvent(new Event('change'));
+                            
+                            // 2. Set Kelurahan (after options are populated)
+                            // We need a small timeout or direct execution since the event is synchronous
+                            if (editKelSelect) {
+                                editKelSelect.value = kelFound;
+                            }
+                        }
+                        // ----------------------------------
+
+                        document.getElementById('edit-disasterDate').value = disaster.disaster_date;
                         document.getElementById('edit-lokasi').value = disaster.lokasi;
                         document.getElementById('edit-disasterDate').value = disaster.disaster_date;
                         document.getElementById('edit-keterangan').value = disaster.keterangan || '';
 
-                        // Reset input file
                         const photoInput = document.querySelector('#edit-disaster-form input[type="file"]');
                         if (photoInput) photoInput.value = '';
 
-                        // Logic Kategori (Bencana vs Insiden)
                         const isInsiden = disaster.kategori_laporan === 'insiden';
                         const selectEl = document.getElementById('edit-jenisBencana');
                         const fieldBencana = document.querySelectorAll('.field-bencana');
                         
-                        // Populate Dropdown Jenis Bencana
                         if (selectEl) {
                             selectEl.innerHTML = '';
                             const options = isInsiden ? insidenOptions : bencanaOptions;
@@ -1589,7 +1552,6 @@ document.addEventListener('DOMContentLoaded', function() {
                             });
                         }
 
-                        // Show/Hide Fields Berdasarkan Kategori
                         if (isInsiden) {
                             fieldBencana.forEach(el => el.style.display = 'none');
                         } else {
@@ -1599,14 +1561,12 @@ document.addEventListener('DOMContentLoaded', function() {
                             document.getElementById('edit-tingkatKerusakan').value = disaster.tingkatKerusakan;
                         }
 
-                        // [NEW] Logic Menampilkan Foto Existing (Fitur Hapus)
                         const photoContainer = document.getElementById('edit-existing-photos');
                         const photoWrapper = document.getElementById('edit-existing-photos-container');
                         
                         if (photoContainer && photoWrapper) {
-                            photoContainer.innerHTML = ''; // Reset konten sebelumnya
+                            photoContainer.innerHTML = ''; 
                             
-                            // Cek jika ada foto yang dikirim dari server
                             if (photos && photos.length > 0) {
                                 photoWrapper.style.display = 'block';
                                 photos.forEach(photo => {
@@ -1630,7 +1590,6 @@ document.addEventListener('DOMContentLoaded', function() {
                             }
                         }
                         
-                        // Tampilkan modal
                         const editModal = new bootstrap.Modal(document.getElementById('edit-modal'));
                         editModal.show();
                         
@@ -1645,7 +1604,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Handle delete button
     document.addEventListener('click', function(e) {
         if (e.target.closest('.delete-btn')) {
             const id = e.target.closest('.delete-btn').getAttribute('data-id');
@@ -1653,9 +1611,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-/**
- * Handle delete disaster report
- */
 function handleDeleteDisaster(id) {
     Swal.fire({
         title: 'Konfirmasi Hapus',
@@ -1671,7 +1626,7 @@ function handleDeleteDisaster(id) {
             const formData = new FormData();
             formData.append('id', id);
 
-            fetch('../../api/delete_disaster.php', {
+            fetch('api/delete_disaster.php', {
                 method: 'POST',
                 body: formData
             })
@@ -1686,7 +1641,7 @@ function handleDeleteDisaster(id) {
                         timer: 1500,
                         showConfirmButton: false
                     });
-                    loadAndDisplayAllReports(); // Reload data
+                    loadAndDisplayAllReports(); 
                 } else {
                     Swal.fire({
                         icon: 'error',
@@ -1709,14 +1664,19 @@ function handleDeleteDisaster(id) {
     });
 }
 
-    // --- Handle Submit Formulir Edit Modal ---
-    const editForm = document.getElementById('edit-disaster-form');
+const editForm = document.getElementById('edit-disaster-form');
     if (editForm) {
         editForm.addEventListener('submit', function(event) {
-            event.preventDefault(); 
+            event.preventDefault();
+
+            // --- NEW: COMBINE DROPDOWNS INTO HIDDEN INPUT ---
+            // The value of editKelSelect is already "Desa X, Kec. Y"
+            const finalLoc = document.getElementById('edit-kelurahan').value;
+            document.getElementById('edit-lokasi-combined').value = finalLoc;
+            // ------------------------------------------------
             
             const form = event.target;
-            const formData = new FormData(form); 
+            const formData = new FormData(form);
             const modalElement = document.getElementById('edit-modal');
             const modal = bootstrap.Modal.getInstance(modalElement);
 
@@ -1738,7 +1698,7 @@ function handleDeleteDisaster(id) {
                         timer: 1500,
                         showConfirmButton: false
                     });
-                    loadAndDisplayAllReports(); // Muat ulang SEMUA data di tabel
+                    loadAndDisplayAllReports(); 
                 } else {
                     Swal.fire({ icon: 'error', title: 'Gagal!', text: data.message, confirmButtonColor: '#e60013' });
                 }
@@ -1750,7 +1710,6 @@ function handleDeleteDisaster(id) {
         });
     }
 
-    // Handle photo modal
     document.addEventListener('click', function(e) {
         if (e.target.matches('[data-bs-target="#photo-modal"]')) {
             const imgSrc = e.target.getAttribute('data-photo-src');
@@ -1760,3 +1719,48 @@ function handleDeleteDisaster(id) {
         }
     });
 });
+
+// --- 1. SETUP EDIT DROPDOWNS ---
+    const editKecSelect = document.getElementById('edit-kecamatan');
+    const editKelSelect = document.getElementById('edit-kelurahan');
+
+    // Populate Kecamatan Dropdown
+    if (editKecSelect) {
+        Object.keys(minahasaLocations).forEach(kec => {
+            const opt = document.createElement('option');
+            opt.value = kec;
+            opt.textContent = kec;
+            editKecSelect.appendChild(opt);
+        });
+
+        // Handle Change Event (Cascade)
+        editKecSelect.addEventListener('change', function() {
+            const selectedKec = this.value;
+            editKelSelect.innerHTML = '<option value="">Pilih Desa/Kelurahan</option>';
+
+            if (selectedKec && minahasaLocations[selectedKec]) {
+                const data = minahasaLocations[selectedKec];
+                
+                if (data.desa) {
+                    data.desa.forEach(d => {
+                        const val = `Desa ${d}, Kec. ${selectedKec}`; // Format standard
+                        const opt = document.createElement('option');
+                        opt.value = val;
+                        opt.textContent = `Desa ${d}`;
+                        opt.setAttribute('data-pure-name', `Desa ${d}`); // Helper for matching
+                        editKelSelect.appendChild(opt);
+                    });
+                }
+                if (data.kelurahan) {
+                    data.kelurahan.forEach(k => {
+                        const val = `Kelurahan ${k}, Kec. ${selectedKec}`;
+                        const opt = document.createElement('option');
+                        opt.value = val;
+                        opt.textContent = `Kelurahan ${k}`;
+                        opt.setAttribute('data-pure-name', `Kelurahan ${k}`);
+                        editKelSelect.appendChild(opt);
+                    });
+                }
+            }
+        });
+    }

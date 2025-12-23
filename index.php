@@ -368,8 +368,24 @@ $username = $_SESSION['username'] ?? '';
                                 </select>
                             </div>
                             <div class="col-md-6">
-                                <label for="edit-lokasi" class="form-label">Lokasi (Desa/Kecamatan)</label>
-                                <input type="text" id="edit-lokasi" name="lokasi" required class="form-control">
+                            <div class="mb-3">
+                                <label class="form-label">Lokasi Kejadian</label>
+                                <div class="row g-2">
+                                    <div class="col-md-6">
+                                        <label for="edit-kecamatan" class="form-label small text-muted">Kecamatan</label>
+                                        <select class="form-select" id="edit-kecamatan" required>
+                                            <option value="">Pilih Kecamatan</option>
+                                            </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="edit-kelurahan" class="form-label small text-muted">Desa / Kelurahan</label>
+                                        <select class="form-select" id="edit-kelurahan" required>
+                                            <option value="">Pilih Desa/Kelurahan</option>
+                                            </select>
+                                    </div>
+                                </div>
+                                <input type="hidden" id="edit-lokasi-combined" name="lokasi">
+                            </div>
                             </div>
 
                             <div class="col-md-4 field-bencana">

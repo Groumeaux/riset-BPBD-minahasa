@@ -2,7 +2,6 @@
 session_start();
 require_once '../config/config.php';
 
-// Cek Keamanan: Hanya Role 'head' yang boleh akses
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'head') {
     header('Location: ../index.php');
     exit;
@@ -199,30 +198,25 @@ $username = $_SESSION['username'] ?? '';
     <script src="https://cdn.datatables.net/2.0.8/js/dataTables.bootstrap5.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
-    <!-- LOGIKA JAVASCRIPT GABUNGAN -->
     <script>
-        // --- VARIABLE GLOBAL ---
+
         let tableBencana, tableInsiden;
 
-        // --- 1. SAAT HALAMAN DIMUAT ---
         document.addEventListener('DOMContentLoaded', function() {
-            loadData(); // Muat data dari server
+            loadData(); 
 
-            // Listener Filter
+
             document.getElementById('filter-status').addEventListener('change', applyFilters);
             document.getElementById('filter-jenis').addEventListener('change', applyFilters);
 
-            // Listener Select All
             document.getElementById('select-all-bencana').addEventListener('change', function() { handleSelectAll('#pending-reports-table', this); });
             document.getElementById('select-all-insiden').addEventListener('change', function() { handleSelectAll('#insiden-reports-table', this); });
 
-            // Listener Checkbox Individual (Event Delegation)
             document.addEventListener('change', function(e) {
                 if (e.target.classList.contains('report-checkbox')) updateButtonState();
             });
         });
 
-        // --- 2. FUNGSI LOAD DATA ---
         function loadData() {
             fetch('../api/get_disasters.php')
                 .then(res => res.json())
@@ -237,20 +231,16 @@ $username = $_SESSION['username'] ?? '';
         }
 
         function processData(allData) {
-            // Filter Data Bulan Ini (Opsional: Jika ingin semua data, hapus filter ini)
-            // Di sini kita tampilkan semua agar hasil upload terlihat
+
             const monthlyData = allData; 
 
-            // Update Statistik Angka
             document.getElementById('pending-count').innerText = monthlyData.filter(r => r.status === 'pending').length;
             document.getElementById('approved-count').innerText = monthlyData.filter(r => r.status === 'approved').length;
             document.getElementById('rejected-count').innerText = monthlyData.filter(r => r.status === 'rejected').length;
 
-            // Pisahkan Data Bencana & Insiden
             const bencanaList = monthlyData.filter(d => d.kategori_laporan === 'bencana' || !d.kategori_laporan);
             const insidenList = monthlyData.filter(d => d.kategori_laporan === 'insiden');
 
-            // Sortir data: Menunggu (pending) di atas, lalu berdasarkan tanggal descending
             const statusOrder = { 'pending': 1, 'approved': 2, 'rejected': 3 };
             bencanaList.sort((a, b) => {
                 const aOrder = statusOrder[a.status] || 4;
@@ -265,12 +255,10 @@ $username = $_SESSION['username'] ?? '';
                 return new Date(b.disaster_date) - new Date(a.disaster_date);
             });
 
-            // Render Tabel
             renderTable('#pending-reports-table', '#pending-reports-body', bencanaList, 'bencana');
             renderTable('#insiden-reports-table', '#insiden-reports-body', insidenList, 'insiden');
         }
 
-        // --- 3. RENDER TABEL ---
         function renderTable(tableId, tbodyId, data, type) {
             if ($.fn.DataTable.isDataTable(tableId)) {
                 $(tableId).DataTable().destroy();
@@ -293,17 +281,15 @@ $username = $_SESSION['username'] ?? '';
                 if(item.status === 'approved') statusBadge = `<span class="badge bg-success">Disetujui</span>`;
                 if(item.status === 'rejected') statusBadge = `<span class="badge bg-danger">Ditolak</span>`;
 
-                // --- PERBAIKAN LOGIKA FOTO ---
-                // Menampilkan semua foto dalam grid kecil
-                let photoHtml = '<span class="text-muted small">No Img</span>';
+let photoHtml = '<span class="text-muted small">No Img</span>';
                 if (item.photos && item.photos.length > 0) {
                     photoHtml = '<div class="d-flex flex-wrap gap-1">';
                     item.photos.forEach(p => {
-                        photoHtml += `<img src="${p.file_path}" class="img-thumbnail" style="width: 40px; height: 40px; object-fit: cover; cursor: pointer;" onclick="showPhoto('${p.file_path}', '${p.original_filename}')" title="${p.original_filename}">`;
+                        photoHtml += `<img src="../${p.file_path}" class="img-thumbnail" style="width: 40px; height: 40px; object-fit: cover; cursor: pointer;" onclick="showPhoto('../${p.file_path}', '${p.original_filename}')" title="${p.original_filename}">`;
                     });
                     photoHtml += '</div>';
                 }
-                // ------------------------------
+
 
                 let actions = '-';
                 if(isPending) {
@@ -315,7 +301,6 @@ $username = $_SESSION['username'] ?? '';
                     `;
                 }
 
-                // Format Tanggal
                 let dateStr = item.disaster_date;
                 try {
                     const d = new Date(item.disaster_date);
@@ -352,19 +337,16 @@ $username = $_SESSION['username'] ?? '';
                 tbody.innerHTML += row;
             });
 
-            // Inisialisasi DataTable Baru
             const targets = type === 'bencana' ? [0,3,4,7,9] : [0,2,3,6,8];
             const table = $(tableId).DataTable({
                 pageLength: 5,
-                order: [[6, 'desc']], // Urutkan berdasarkan tanggal (kolom ke-7, index 6)
+                order: [[6, 'desc']], 
                 columnDefs: [{ orderable: false, targets: targets }]
             });
 
             if(type === 'bencana') tableBencana = table;
             else tableInsiden = table;
         }
-
-        // --- 4. FUNGSI AKSI (APPROVE / REJECT) ---
         
         function approveSingle(id) {
             Swal.fire({
@@ -390,7 +372,6 @@ $username = $_SESSION['username'] ?? '';
             if(!reason) return Swal.fire('Error', 'Alasan wajib diisi!', 'warning');
 
             sendRequest(id, 'rejected', reason);
-            // Tutup modal manual
             const modalEl = document.getElementById('rejectModal');
             const modal = bootstrap.Modal.getInstance(modalEl);
             modal.hide();
@@ -407,15 +388,13 @@ $username = $_SESSION['username'] ?? '';
                 .then(data => {
                     if(data.success) {
                         Swal.fire('Sukses', data.message, 'success');
-                        loadData(); // Reload data
+                        loadData(); 
                     } else {
                         Swal.fire('Gagal', data.message, 'error');
                     }
                 })
                 .catch(() => Swal.fire('Error', 'Gagal koneksi ke server', 'error'));
         }
-
-        // --- 5. FUNGSI AKSI MASSAL (BULK) ---
         
         function approveAllReports() { processBulk('approved', 'Setujui'); }
         
@@ -456,7 +435,7 @@ $username = $_SESSION['username'] ?? '';
                 if(reason) formData.append('reason', reason);
 
                 try {
-                    const res = await fetch('validation_process.php', { method: 'POST', body: formData });
+                    const res = await fetch('../validation_process.php', { method: 'POST', body: formData });
                     const json = await res.json();
                     if(json.success) success++; else fail++;
                 } catch(e) { fail++; }
@@ -464,11 +443,10 @@ $username = $_SESSION['username'] ?? '';
 
             Swal.fire('Selesai', `Berhasil: ${success}, Gagal: ${fail}`, fail===0 ? 'success':'warning');
             loadData();
-            document.querySelectorAll('.report-checkbox').forEach(cb => cb.checked = false); // Uncheck all
+            document.querySelectorAll('.report-checkbox').forEach(cb => cb.checked = false); 
             updateButtonState();
         }
 
-        // --- 6. UTILS (HELPER) ---
 
         function handleSelectAll(tableSelector, sourceCb) {
             document.querySelectorAll(`${tableSelector} .report-checkbox`).forEach(cb => {

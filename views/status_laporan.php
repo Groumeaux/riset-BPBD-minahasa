@@ -2,7 +2,6 @@
 session_start();
 require_once '../config/config.php';
 
-// Cek User Login
 if (!isset($_SESSION['user_id'])) {
     header('Location: ../index.php');
     exit;
@@ -19,14 +18,11 @@ $username = $_SESSION['username'] ?? 'User';
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../assets/css/style.css">
-    <!-- SweetAlert2 untuk Popup Alasan & Notifikasi -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.1/dist/sweetalert2.min.css">
 </head>
 <body class="logged-in">
     <div class="p-4 p-md-5">
         <div class="container">
-            
-            <!-- HEADER -->
             <header class="bpbd-header shadow-sm rounded p-4 mb-4">
                 <div class="d-flex justify-content-between align-items-center">
                     <div class="d-flex align-items-center">
@@ -47,7 +43,6 @@ $username = $_SESSION['username'] ?? 'User';
                 </div>
             </header>
 
-            <!-- TABEL STATUS -->
             <div class="bg-white p-4 rounded shadow-sm">
                 <div class="alert alert-info d-flex align-items-center" role="alert">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-info-circle-fill flex-shrink-0 me-2" viewBox="0 0 16 16">
@@ -80,7 +75,6 @@ $username = $_SESSION['username'] ?? 'User';
         </div>
     </div>
 
-    <!-- MODAL EDIT (Diperbarui dengan Upload & Dropdown) -->
     <div class="modal fade" id="edit-modal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -88,7 +82,6 @@ $username = $_SESSION['username'] ?? 'User';
                     <h5 class="modal-title">Edit / Revisi Laporan</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <!-- Tambahkan enctype agar bisa upload file -->
                 <form id="edit-disaster-form" enctype="multipart/form-data">
                     <div class="modal-body">
                         <input type="hidden" id="edit-disaster-id" name="id">
@@ -101,17 +94,13 @@ $username = $_SESSION['username'] ?? 'User';
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label class="form-label">Jenis Bencana/Insiden</label>
-                                <!-- Ubah Input Readonly menjadi Select -->
                                 <select id="edit-jenisBencana" name="jenisBencana" class="form-select">
-                                    <!-- Opsi diisi via JS -->
                                 </select>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Lokasi</label>
                                 <input type="text" id="edit-lokasi" name="lokasi" required class="form-control">
                             </div>
-                            
-                            <!-- Field khusus Bencana -->
                             <div class="col-md-4 field-bencana">
                                 <label class="form-label">Jiwa Terdampak</label>
                                 <input type="number" id="edit-jiwaTerdampak" name="jiwaTerdampak" min="0" class="form-control">
@@ -138,20 +127,14 @@ $username = $_SESSION['username'] ?? 'User';
                                 <label class="form-label">Tanggal Kejadian</label>
                                 <input type="date" id="edit-disasterDate" name="disasterDate" required class="form-control">
                             </div>
-                            
-                            <!-- [NEW] Container untuk Menampilkan Foto Saat Ini -->
                             <div class="col-12" id="edit-existing-photos-container" style="display: none;">
                                 <label class="form-label fw-bold">Foto Saat Ini (Centang kotak "Hapus" untuk menghapus foto)</label>
                                 <div id="edit-existing-photos" class="row g-2">
-                                    <!-- Foto akan dimuat di sini oleh JS -->
                                 </div>
                                 <hr>
                             </div>
-
-                            <!-- Input File Baru -->
                             <div class="col-md-6">
                                 <label class="form-label">Tambah Foto Dokumentasi (Hanya .jpg/.jpeg)</label>
-                                <!-- UPDATED: Accept attribute strictly set to .jpg, .jpeg to filter file explorer -->
                                 <input type="file" name="photos[]" class="form-control" multiple accept=".jpg, .jpeg">
                                 <div class="form-text small">Pilih foto baru jika ingin menambahkan dokumentasi.</div>
                             </div>
@@ -166,7 +149,6 @@ $username = $_SESSION['username'] ?? 'User';
         </div>
     </div>
 
-    <!-- JS -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.1/dist/sweetalert2.all.min.js"></script>
@@ -175,14 +157,11 @@ $username = $_SESSION['username'] ?? 'User';
         document.addEventListener('DOMContentLoaded', function() {
             loadMyReports();
 
-            // Handle Submit Edit Form
             const editForm = document.getElementById('edit-disaster-form');
             editForm.addEventListener('submit', function(e) {
                 e.preventDefault();
                 const formData = new FormData(e.target);
                 
-                // Gunakan endpoint yang sudah ada (edit_disaster.php)
-                // Endpoint ini SUDAH di-set untuk mengubah status jadi 'pending'
                 fetch('../api/edit_disaster.php', {
                     method: 'POST',
                     body: formData
@@ -193,8 +172,7 @@ $username = $_SESSION['username'] ?? 'User';
                         Swal.fire('Berhasil', data.message, 'success');
                         const modal = bootstrap.Modal.getInstance(document.getElementById('edit-modal'));
                         modal.hide();
-                        loadMyReports(); // Reload tabel
-                    } else {
+                        loadMyReports(); 
                         Swal.fire('Gagal', data.message, 'error');
                     }
                 })
@@ -218,14 +196,12 @@ $username = $_SESSION['username'] ?? 'User';
                     const date = new Date(item.disaster_date).toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'});
                     const isInsiden = item.kategori_laporan === 'insiden';
                     
-                    // Status Badge Logic
                     let statusBadge = '';
                     let actionBtn = '';
                     let rowClass = '';
 
                     if (item.status === 'pending') {
                         statusBadge = '<span class="badge bg-warning text-dark">Menunggu Validasi</span>';
-                        // Tombol edit biasa
                         actionBtn = `<button class="btn btn-sm btn-outline-primary" onclick="openEdit(${item.id})">Edit</button>`;
                     } else if (item.status === 'approved') {
                         statusBadge = '<span class="badge bg-success">Disetujui</span>';
@@ -234,8 +210,6 @@ $username = $_SESSION['username'] ?? 'User';
                         statusBadge = '<span class="badge bg-danger">Ditolak</span>';
                         rowClass = 'table-danger';
                         
-                        // Tombol Lihat Alasan & Revisi
-                        // Escape single quotes for JS string
                         const safeReason = (item.reject_reason || '').replace(/'/g, "\\'");
                         actionBtn = `
                             <div class="d-flex gap-1 justify-content-center">
@@ -260,7 +234,6 @@ $username = $_SESSION['username'] ?? 'User';
             });
         }
 
-        // Fungsi Tampilkan Alasan (SweetAlert)
         function showReason(reason) {
             Swal.fire({
                 title: 'Alasan Penolakan',
@@ -271,35 +244,28 @@ $username = $_SESSION['username'] ?? 'User';
             });
         }
 
-        // Daftar opsi untuk dropdown (Agar konsisten dengan form input awal)
         const bencanaOptions = ['Banjir', 'Tanah Longsor', 'Angin Puting Beliung', 'Gempa Bumi', 'Kebakaran', 'Kebakaran Hutan'];
         const insidenOptions = ['Pohon Tumbang', 'Orang Hilang'];
 
-        // Fungsi Buka Modal Edit
         function openEdit(id) {
-            // Fetch single data untuk isi form
             fetch(`../api/get_single_disaster.php?id=${id}`)
                 .then(res => res.json())
                 .then(resp => {
                     if (resp.success) {
                         const data = resp.data;
                         
-                        // Isi Form Input Biasa
                         document.getElementById('edit-disaster-id').value = data.id;
                         document.getElementById('edit-lokasi').value = data.lokasi;
                         document.getElementById('edit-disasterDate').value = data.disaster_date;
                         document.getElementById('edit-keterangan').value = data.keterangan;
 
-                        // Reset input file
                         document.querySelector('input[name="photos[]"]').value = '';
 
-                        // Logic Kategori (Bencana vs Insiden)
                         const isInsiden = data.kategori_laporan === 'insiden';
                         const fieldBencana = document.querySelectorAll('.field-bencana');
                         
-                        // Populate Dropdown Jenis Bencana
                         const selectEl = document.getElementById('edit-jenisBencana');
-                        selectEl.innerHTML = ''; // Clear options
+                        selectEl.innerHTML = ''; 
                         const options = isInsiden ? insidenOptions : bencanaOptions;
                         
                         options.forEach(opt => {
@@ -310,7 +276,6 @@ $username = $_SESSION['username'] ?? 'User';
                             selectEl.appendChild(el);
                         });
 
-                        // Show/Hide Fields
                         if (isInsiden) {
                             fieldBencana.forEach(el => el.style.display = 'none');
                         } else {
@@ -320,11 +285,10 @@ $username = $_SESSION['username'] ?? 'User';
                             document.getElementById('edit-tingkatKerusakan').value = data.tingkatKerusakan;
                         }
 
-                        // [NEW] Logic Menampilkan Foto Existing
                         const photoContainer = document.getElementById('edit-existing-photos');
                         const photoWrapper = document.getElementById('edit-existing-photos-container');
                         
-                        photoContainer.innerHTML = ''; // Clear previous
+                        photoContainer.innerHTML = ''; 
                         
                         if (data.photos && data.photos.length > 0) {
                             photoWrapper.style.display = 'block';
@@ -348,7 +312,6 @@ $username = $_SESSION['username'] ?? 'User';
                             photoWrapper.style.display = 'none';
                         }
 
-                        // Show Modal
                         new bootstrap.Modal(document.getElementById('edit-modal')).show();
                     }
                 });

@@ -4,7 +4,6 @@ require_once '../config/config.php';
 
 header('Content-Type: application/json');
 
-// Keamanan: Hanya Head
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'head') {
     echo json_encode(['success' => false, 'message' => 'Akses ditolak.']);
     exit;
@@ -25,13 +24,11 @@ if (!$id || !in_array($action, ['approved', 'rejected'])) {
 
 try {
     if ($action === 'approved') {
-        // Setujui: Status Approved, Hapus Alasan Tolak
         $stmt = $pdo->prepare("UPDATE disasters SET status = 'approved', validated_at = NOW(), reject_reason = NULL WHERE id = ?");
         $stmt->execute([$id]);
         echo json_encode(['success' => true, 'message' => 'Laporan disetujui.']);
     } 
     elseif ($action === 'rejected') {
-        // Tolak: Status Rejected, Isi Alasan Tolak
         $reason = trim($_POST['reason'] ?? '');
         if (empty($reason)) {
             echo json_encode(['success' => false, 'message' => 'Alasan penolakan wajib diisi.']);
