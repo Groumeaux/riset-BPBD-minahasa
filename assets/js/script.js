@@ -385,7 +385,7 @@ function handleLogin(event) {
     formData.append('username', username);
     formData.append('password', password);
 
-    fetch('api/login.php', {
+    fetch('views/login.php', {
         method: 'POST',
         body: formData
     })
@@ -433,7 +433,7 @@ function populateYearDropdown() {
 
     const currentYear = new Date().getFullYear();
     const startYear = currentYear - 2; // Mulai dari 2 tahun lalu
-    const endYear = currentYear + 1;   // Sampai 1 tahun ke depan
+    const endYear = currentYear + 2;   // Sampai 1 tahun ke depan
 
     yearSelect.innerHTML = '';
     for (let y = startYear; y <= endYear; y++) {
@@ -554,7 +554,7 @@ function handleLogout() {
                 timer: 1500,
                 showConfirmButton: false
             }).then(() => {
-                window.location.href = 'api/logout.php';
+                window.location.href = 'views/logout.php';
             });
         }
     });
@@ -759,7 +759,7 @@ function handlePrintReport() {
                     <!-- LEFT LOGO -->
                     <td style="width: 80px; text-align: left; vertical-align: middle; border: none;">
                         <img
-                            src="uploads/logokab-minahasa.png"
+                            src="../../uploads/logokab-minahasa.png"
                             alt="Logo Kabupaten Minahasa"
                             style="width: 70px; height: auto;"
                         >
@@ -784,7 +784,7 @@ function handlePrintReport() {
                     <!-- RIGHT LOGO -->
                     <td style="width: 80px; text-align: right; vertical-align: middle; border: none;">
                         <img
-                            src="uploads/logobpbd-minahasa.png"
+                            src="../../uploads/logobpbd-minahasa.png"
                             alt="Logo BPBD"
                             style="width: 70px; height: auto;"
                         >
@@ -914,7 +914,7 @@ function handlePrintInsidenReport() {
                         <!-- LEFT LOGO -->
                         <td style="width: 80px; text-align: left; vertical-align: middle; border: none;">
                             <img
-                                src="uploads/logokab-minahasa.png"
+                                src="../../uploads/logokab-minahasa.png"
                                 alt="Logo Kabupaten Minahasa"
                                 style="width: 70px; height: auto;"
                             >
@@ -939,7 +939,7 @@ function handlePrintInsidenReport() {
                         <!-- RIGHT LOGO -->
                         <td style="width: 80px; text-align: right; vertical-align: middle; border: none;">
                             <img
-                                src="uploads/logobpbd-minahasa.png"
+                                src="../../uploads/logobpbd-minahasa.png"
                                 alt="Logo BPBD"
                                 style="width: 70px; height: auto;"
                             >
@@ -1069,7 +1069,7 @@ const printContent = `
             <!-- LEFT LOGO -->
             <td style="width: 80px; text-align: left; vertical-align: middle; border: none;">
                 <img 
-                    src="uploads/logokab-minahasa.png"
+                    src="../../uploads/logokab-minahasa.png"
                     alt="Logo Kabupaten Minahasa"
                     style="width: 70px; height: auto;"
                 >
@@ -1094,7 +1094,7 @@ const printContent = `
             <!-- RIGHT LOGO -->
             <td style="width: 80px; text-align: right; vertical-align: middle; border: none;">
                 <img 
-                    src="uploads/logobpbd-minahasa.png"
+                    src="../../uploads/logobpbd-minahasa.png"
                     alt="Logo BPBD"
                     style="width: 70px; height: auto;"
                 >
@@ -1284,7 +1284,7 @@ const printContent = `
                 <!-- LEFT LOGO -->
                 <td style="width: 80px; text-align: left; vertical-align: middle; border: none;">
                     <img 
-                        src="uploads/logokab-minahasa.png"
+                        src="../../uploads/logokab-minahasa.png"
                         alt="Logo Kabupaten Minahasa"
                         style="width: 70px; height: auto;"
                     >
@@ -1309,7 +1309,7 @@ const printContent = `
                 <!-- RIGHT LOGO -->
                 <td style="width: 80px; text-align: right; vertical-align: middle; border: none;">
                     <img 
-                        src="uploads/logobpbd-minahasa.png"
+                        src="../../uploads/logobpbd-minahasa.png"
                         alt="Logo BPBD Minahasa"
                         style="width: 70px; height: auto;"
                     >
@@ -1671,7 +1671,7 @@ function handleDeleteDisaster(id) {
             const formData = new FormData();
             formData.append('id', id);
 
-            fetch('api/delete_disaster.php', {
+            fetch('../../api/delete_disaster.php', {
                 method: 'POST',
                 body: formData
             })

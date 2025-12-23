@@ -90,13 +90,17 @@ if ($kategoriLaporan === 'bencana') {
     }
 }
 
-// --- LOGIKA UPLOAD FOTO (KHUSUS JPG) ---
 $uploadedPhotos = [];
-$uploadErrors = []; // [NEW] Array untuk menampung pesan error
-$uploadDir = 'uploads/';
+$uploadErrors = [];
 
-if (!is_dir($uploadDir)) {
-    mkdir($uploadDir, 0755, true);
+// 1. File System Path (Where PHP saves it: Go up one level to root)
+$fsUploadDir = '../uploads/'; 
+
+// 2. Database Path (What HTML <img> tags need: From root)
+$dbUploadDir = 'uploads/';
+
+if (!is_dir($fsUploadDir)) {
+    mkdir($fsUploadDir, 0755, true);
 }
 
 if (isset($_FILES['photos']) && is_array($_FILES['photos']['name'])) {
@@ -149,7 +153,7 @@ if (isset($_FILES['photos']) && is_array($_FILES['photos']['name'])) {
             $uploadedPhotos[] = [
                 'filename' => $uniqueFilename,
                 'original_filename' => $filename,
-                'file_path' => $filePath
+                'file_path' => $dbUploadDir . $uniqueFilename
             ];
         } else {
              $uploadErrors[] = "Gagal memindahkan file $filename ke folder uploads.";

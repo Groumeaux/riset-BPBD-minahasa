@@ -4,7 +4,7 @@
     justify-content: center;
     align-items: center;
     height: 100vh;
-    background-image: url('uploads/login-background.webp'); /* Background image */
+    background-image: url('../../uploads/login-background.webp'); /* Background image */
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;

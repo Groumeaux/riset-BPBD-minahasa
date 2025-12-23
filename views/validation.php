@@ -20,7 +20,7 @@ $username = $_SESSION['username'] ?? '';
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.datatables.net/2.0.8/css/dataTables.bootstrap5.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="../assets/css/style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.1/dist/sweetalert2.min.css">
 </head>
 <body class="logged-in">
@@ -31,7 +31,7 @@ $username = $_SESSION['username'] ?? '';
                 <div class="d-flex justify-content-between align-items-center">
                     <div class="d-flex align-items-center">
                         <div class="header-logo me-3">
-                            <img src="uploads/bpbd-logo.png" alt="BPBD Logo" class="header-bpbd-logo">
+                            <img src="../uploads/logobpbd-minahasa.png" alt="BPBD Logo" class="header-bpbd-logo">
                         </div>
                         <div>
                             <h1 class="h2 h1-md fw-bold text-dark mb-1">Validasi Laporan</h1>

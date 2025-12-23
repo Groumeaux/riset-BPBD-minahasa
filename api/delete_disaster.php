@@ -1,6 +1,7 @@
 <?php
 session_start();
-require_once 'config.php';
+// FIX 1: Update config path (Go up one level)
+require_once '../config/config.php';
 
 header('Content-Type: application/json');
 
@@ -21,7 +22,6 @@ if (!$id) {
     exit;
 }
 
-// Check if user owns the disaster or is head
 $role = $_SESSION['role'];
 $userId = $_SESSION['user_id'];
 
@@ -48,17 +48,21 @@ try {
 
     // Delete photo files
     foreach ($photos as $photo) {
-        if (file_exists($photo['file_path'])) {
-            unlink($photo['file_path']);
+        // FIX 2: Add '../' so PHP can find the file from the api folder
+        $physicalPath = '../' . $photo['file_path'];
+
+        if (file_exists($physicalPath)) {
+            unlink($physicalPath);
         }
-        // Also delete thumbnail if exists
-        $thumbPath = str_replace('disaster_', 'thumb_disaster_', $photo['file_path']);
+        
+        // Handle Thumbnail (Apply logic to the physical path)
+        $thumbPath = str_replace('disaster_', 'thumb_disaster_', $physicalPath);
         if (file_exists($thumbPath)) {
             unlink($thumbPath);
         }
     }
 
-    // Delete disaster (photos will be deleted via CASCADE)
+    // Delete disaster (photos will be deleted via CASCADE in DB)
     $stmt = $pdo->prepare("DELETE FROM disasters WHERE id = ?");
     $stmt->execute([$id]);
 

@@ -78,10 +78,13 @@ $kategori = $report['kategori_laporan'];
 // --- 5. LOGIKA UPLOAD FOTO BARU (KHUSUS JPG) ---
 $uploadedPhotos = [];
 $uploadErrors = [];
-$uploadDir = 'uploads/'; 
 
-if (!is_dir($uploadDir)) {
-    mkdir($uploadDir, 0755, true);
+// Separate paths
+$fsUploadDir = '../uploads/';
+$dbUploadDir = 'uploads/';
+
+if (!is_dir($fsUploadDir)) {
+    mkdir($fsUploadDir, 0755, true);
 }
 
 if (isset($_FILES['photos']) && is_array($_FILES['photos']['name'])) {
@@ -119,18 +122,20 @@ if (isset($_FILES['photos']) && is_array($_FILES['photos']['name'])) {
             continue;
         }
 
-        $uniqueFilename = uniqid('disaster_', true) . '.jpg';
-        $filePath = $uploadDir . $uniqueFilename;
+ $uniqueFilename = uniqid('disaster_', true) . '.jpg';
+        
+        // Use FS Path
+        $filePath = $fsUploadDir . $uniqueFilename;
 
         if (move_uploaded_file($fileTmp, $filePath)) {
             $thumbFilename = 'thumb_' . $uniqueFilename;
-            $thumbPath = $uploadDir . $thumbFilename;
+            $thumbPath = $fsUploadDir . $thumbFilename;
             create_thumbnail($filePath, $thumbPath);
 
             $uploadedPhotos[] = [
                 'filename' => $uniqueFilename,
                 'original_filename' => $filename,
-                'file_path' => $filePath
+                'file_path' => $dbUploadDir . $uniqueFilename // Store DB Path
             ];
         } else {
             $uploadErrors[] = "Gagal menyimpan file $filename ke server";
@@ -187,18 +192,21 @@ try {
             $checkStmt->execute([$photoId, $id]);
             $photo = $checkStmt->fetch();
 
-            if ($photo) {
-                // Hapus file fisik
-                if (file_exists($photo['file_path'])) {
-                    unlink($photo['file_path']);
+if ($photo) {
+                // ADD '../' TO FIND THE FILE FROM API FOLDER
+                $physicalPath = '../' . $photo['file_path'];
+
+                if (file_exists($physicalPath)) {
+                    unlink($physicalPath);
                 }
-                // Hapus thumbnail jika ada
-                $thumbPath = str_replace('disaster_', 'thumb_disaster_', $photo['file_path']);
+                
+                // Handle Thumbnail
+                $thumbPath = str_replace('disaster_', 'thumb_disaster_', $physicalPath);
                 if (file_exists($thumbPath)) {
                     unlink($thumbPath);
                 }
 
-                // Hapus dari database
+                // Delete from DB
                 $delStmt = $pdo->prepare("DELETE FROM disaster_photos WHERE id = ?");
                 $delStmt->execute([$photoId]);
             }
