@@ -13,6 +13,7 @@ $username = $_SESSION['username'] ?? '';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Prototipe Laporan Bencana BPBD</title>
+    <link rel="icon" href="uploads/logobpbd-minahasa.png" type="image/png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.datatables.net/2.0.8/css/dataTables.bootstrap5.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -52,7 +53,7 @@ $username = $_SESSION['username'] ?? '';
             </div>
             <div class="login-logo-section">
                 <div class="logo-container">
-                    <img src="uploads/bpbd-logo.png" alt="BPBD Logo" class="bpbd-logo">
+                    <img src="uploads/logobpbd-minahasa.png" alt="BPBD Logo" class="bpbd-logo">
                     <h3 class="logo-title">BADAN PENANGGULANGAN <br> BENCANA DAERAH</h3>
                     <p class="logo-subtitle">Kabupaten Minahasa</p>
                 </div>
@@ -66,7 +67,7 @@ $username = $_SESSION['username'] ?? '';
             <div class="d-flex justify-content-between align-items-center">
                 <div class="d-flex align-items-center">
                     <div class="header-logo me-3">
-                        <img src="uploads/bpbd-logo.png" alt="BPBD Logo" class="header-bpbd-logo">
+                        <img src="uploads/logobpbd-minahasa.png" alt="BPBD Logo" class="header-bpbd-logo">
                     </div>
                     <div>
                         <h1 class="h2 h1-md fw-bold text-dark mb-1">Laporan Bencana & Insiden Darurat</h1>
@@ -87,6 +88,13 @@ $username = $_SESSION['username'] ?? '';
                         </a>
                     <?php endif; ?>
 
+                    <a href="saw_process.php" class="btn btn-info text-white me-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-calculator me-1" viewBox="0 0 16 16">
+                            <path d="M12 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h8zM4 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H4z"/>
+                            <path d="M4 2.5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5h-7a.5.5 0 0 1-.5-.5v-2zm0 4a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zM8 6.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zM4 10.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zM8 10.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1z"/>
+                        </svg>
+                        Proses SAW
+                    </a>
                     <a href="validation.php" class="btn btn-bpbd-primary me-2 <?php echo $userRole !== 'head' ? 'd-none' : ''; ?>" id="validate-link">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-circle me-1" viewBox="0 0 16 16">
                             <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
@@ -166,8 +174,16 @@ $username = $_SESSION['username'] ?? '';
                         </div>
 
                         <div class="mb-3">
-                            <label for="lokasi" class="form-label">Lokasi (Desa/Kecamatan)</label>
-                            <input type="text" id="lokasi" name="lokasi" required class="form-control" placeholder="Contoh: Desa Rerer, Kec. Kombi">
+                            <label for="kecamatan" class="form-label">Kecamatan</label>
+                            <select id="kecamatan" class="form-select" required>
+                                <option value="">Pilih Kecamatan</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="lokasi" class="form-label">Lokasi (Desa/Kelurahan)</label>
+                            <select id="lokasi" name="lokasi" class="form-select" required>
+                                <option value="">Pilih Desa/Kelurahan</option>
+                            </select>
                         </div>
                         <div class="mb-3">
                             <label for="disasterDate" class="form-label">Tanggal Kejadian Bencana</label>
@@ -200,10 +216,10 @@ $username = $_SESSION['username'] ?? '';
                         </div>
                         <!-- FILTER TAHUN & BULAN -->
                         <div class="col-md-4 d-flex gap-2">
-                            <select id="filter-year" class="form-select border-primary fw-bold shadow-sm">
+                            <select id="filter-year" class="form-select border-primary fw-bold shadow-sm w-auto">
                                 <!-- Tahun akan diisi otomatis oleh JS -->
                             </select>
-                            <select id="filter-month" class="form-select border-primary shadow-sm">
+                            <select id="filter-month" class="form-select border-primary shadow-sm w-auto">
                                 <option value="" selected>Setahun Penuh</option>
                                 <option value="01">Januari</option>
                                 <option value="02">Februari</option>
@@ -260,7 +276,6 @@ $username = $_SESSION['username'] ?? '';
                                     <th scope="col">Terdampak</th>
                                     <th scope="col">Kerusakan</th>
                                     <th scope="col">Indeks Dampak (SAW)</th>
-                                    <th scope="col">Status</th> <!-- ADDED STATUS -->
                                     <th scope="col">Foto</th>
                                     <th scope="col">Aksi</th>
                                 </tr>
@@ -290,7 +305,6 @@ $username = $_SESSION['username'] ?? '';
                                     <th scope="col">Lokasi</th>
                                     <th scope="col">Keterangan</th>
                                     <th scope="col">Tanggal</th>
-                                    <th scope="col">Status</th> <!-- ADDED STATUS -->
                                     <th scope="col">Foto</th>
                                     <th scope="col">Aksi</th>
                                 </tr>

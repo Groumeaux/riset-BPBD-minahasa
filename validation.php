@@ -250,6 +250,21 @@ $username = $_SESSION['username'] ?? '';
             const bencanaList = monthlyData.filter(d => d.kategori_laporan === 'bencana' || !d.kategori_laporan);
             const insidenList = monthlyData.filter(d => d.kategori_laporan === 'insiden');
 
+            // Sortir data: Menunggu (pending) di atas, lalu berdasarkan tanggal descending
+            const statusOrder = { 'pending': 1, 'approved': 2, 'rejected': 3 };
+            bencanaList.sort((a, b) => {
+                const aOrder = statusOrder[a.status] || 4;
+                const bOrder = statusOrder[b.status] || 4;
+                if (aOrder !== bOrder) return aOrder - bOrder;
+                return new Date(b.disaster_date) - new Date(a.disaster_date);
+            });
+            insidenList.sort((a, b) => {
+                const aOrder = statusOrder[a.status] || 4;
+                const bOrder = statusOrder[b.status] || 4;
+                if (aOrder !== bOrder) return aOrder - bOrder;
+                return new Date(b.disaster_date) - new Date(a.disaster_date);
+            });
+
             // Render Tabel
             renderTable('#pending-reports-table', '#pending-reports-body', bencanaList, 'bencana');
             renderTable('#insiden-reports-table', '#insiden-reports-body', insidenList, 'insiden');
@@ -301,9 +316,9 @@ $username = $_SESSION['username'] ?? '';
                 }
 
                 // Format Tanggal
-                let dateStr = item.created_at;
+                let dateStr = item.disaster_date;
                 try {
-                    const d = new Date(item.created_at);
+                    const d = new Date(item.disaster_date);
                     dateStr = d.toLocaleDateString('id-ID');
                 } catch(e) {}
 

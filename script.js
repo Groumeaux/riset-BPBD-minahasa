@@ -1,4 +1,4 @@
-// --- KONFIGURASI DAN DATA AWAL ---
+    // --- KONFIGURASI DAN DATA AWAL ---
 
 // 1. Definisikan Bobot Kriteria (W) - Total harus 1.0
 const weights = {
@@ -27,6 +27,88 @@ let allReportData = []; // Variabel global untuk menyimpan data dari server
 // Daftar Opsi untuk Dropdown
 const bencanaOptions = ['Banjir', 'Tanah Longsor', 'Angin Puting Beliung', 'Gempa Bumi', 'Kebakaran', 'Kebakaran Hutan'];
 const insidenOptions = ['Pohon Tumbang', 'Orang Hilang'];
+
+// Data Lokasi Minahasa
+const minahasaLocations = {
+    "Eris": {
+        desa: ["Eris", "Maumbi", "Ranomerut", "Tandengan", "Tandengan Satu", "Telap", "Toliang Oki", "Watumea"]
+    },
+    "Kakas": {
+        desa: ["Kaweng", "Kayuwatu", "Mahembang", "Makalelon", "Pahaleten", "Paslaten", "Rinondor", "Sendangan", "Talikuran", "Toulimembet", "Tounelet", "Tumpaan", "Wineru"]
+    },
+    "Kakas Barat": {
+        desa: ["Bukittinggi", "Kalawiran", "Panasen", "Passo", "Simbel", "Totolan", "Touliang", "Tountimomor", "Wailang", "Wasian"]
+    },
+    "Kawangkoan": {
+        kelurahan: ["Kinali", "Kinali Satu", "Sendangan", "Sendangan Selatan", "Sendangan Utara", "Uner Satu"],
+        desa: ["Kanonang Tiga", "Tondegesan", "Tondegesan Dua", "Tondegesan Satu"]
+    },
+    "Kawangkoan Barat": {
+        desa: ["Kanonang Dua", "Kanonang Empat", "Kanonang Lima", "Kanonang Satu", "Kayuuwi", "Kayuuwi Satu", "Ranolambot", "Tombasian Atas", "Tombasian Atas Satu", "Tombasian Bawah"]
+    },
+    "Kawangkoan Utara": {
+        kelurahan: ["Talikuran", "Talikuran Barat", "Talikuran Utara", "Uner"],
+        desa: ["Kiawa Dua", "Kiawa Dua Barat", "Kiawa Dua Timur", "Kiawa Satu", "Kiawa Satu Barat", "Kiawa Satu Utara"]
+    },
+    "Kombi": {
+        desa: ["Kalawiran", "Kayu Besi", "Kinaleosan", "Kolongan", "Kolongan Satu", "Kombi", "Lalumpe", "Makalisung", "Ranowangko Dua", "Rerer", "Rerer Satu", "Sawangan", "Tulap"]
+    },
+    "Langowan Barat": {
+        desa: ["Ampreng", "Kopiwangker", "Koyawas", "Lowian", "Noongan", "Noongan Dua", "Noongan Tiga", "Paslaten", "Raranon", "Raranon Selatan", "Raranon Utara", "Raringis", "Tounelet", "Tumaratas", "Tumaratas Dua", "Walewangko"]
+    },
+    "Langowan Selatan": {
+        desa: ["Atep", "Atep Satu", "Kaayuran Atas", "Kaayuran Bawah", "Kawatak", "Manembo", "Palamba", "Rumbia", "Temboan", "Winebetan"]
+    },
+    "Langowan Timur": {
+        desa: ["Amongena I", "Amongena II", "Amongena III", "Karondoran", "Sumarayar", "Teep", "Waleure", "Wolaang"]
+    },
+    "Langowan Utara": {
+        desa: ["Karumenga", "Taraitak", "Taraitak Satu", "Tempang I", "Tempang II", "Tempang III", "Toraget", "Walantakan"]
+    },
+    "Lembean Timur": {
+        desa: ["Atep Oki", "Kaleosan", "Kapataran", "Kapataran I", "Karor", "Kayuroya", "Parentek", "Seretan", "Seretan Timu", "Watulaney", "Watulaney Amian"]
+    },
+    "Mandolang": {
+        desa: ["Agotey", "Kalasey Dua", "Kalasey Satu", "Koha", "Koha Barat", "Koha Selatan", "Koha Timur", "Tateli", "Tateli I", "Tateli II", "Tateli III", "Tateli Weru"]
+    },
+    "Pineleng": {
+        desa: ["Kali", "Kali Selatan", "Lotta", "Pineleng Dua Indah", "Pineleng I", "Pineleng II", "Pineleng Satu Timur", "Sea", "Sea I", "Sea II", "Sea Mitra", "Sea Tumpengan", "Warembungan", "Winagun Atas"]
+    },
+    "Remboken": {
+        desa: ["Kaima", "Kasuratan", "Leleko", "Parepei", "Paslaten", "Pulutan", "Sendangan", "Sinuian", "Talikuran", "Tampusu", "Timu"]
+    },
+    "Sonder": {
+        desa: ["Kauneran", "Kauneran Satu", "Kolongan Atas", "Kolongan Atas Dua", "Kolongan Atas Satu", "Leilem", "Leilem Dua", "Leilem Tiga", "Rambunan", "Rambunan Amian", "Sawangan", "Sendangan", "Sendangan Satu", "Talikuran", "Talikuran Satu", "Timbukar", "Tincep", "Tounelet", "Tounelet Satu"]
+    },
+    "Tombariri": {
+        desa: ["Borgo", "Kumu", "Mokupa", "Pinasungkulan", "Poopoh", "Ranowangko", "Sarani Matani", "Senduk", "Tambala", "Teling"]
+    },
+    "Tombariri Timur": {
+        desa: ["Lemoh", "Lemoh Barat", "Lemoh Timur", "Lemoh Uner", "Lolah", "Lolah Dua", "Lolah Satu", "Lolah Tiga", "Ranotongkor", "Ranotongkor Timur"]
+    },
+    "Tombulu": {
+        desa: ["Kamangta", "Kembes I", "Kembes II", "Koka", "Rumengkor", "Rumengkor Dua", "Rumengkor Satu", "Sawangan", "Suluan", "Tikela", "Tombuluan"]
+    },
+    "Tompaso": {
+        desa: ["Kamanga", "Kamanga Dua", "Liba", "Sendangan", "Talikuran", "Tember", "Tempok", "Tempok Selatan", "Tolok", "Tolok Satu"]
+    },
+    "Tompaso Barat": {
+        desa: ["Pinabetengan", "Pinabetengan Selatan", "Pinabetengan Utara", "Pinaesaan", "Tompaso Dua", "Tompaso Dua Utara", "Tonsewer", "Tonsewer Selatan", "Touure", "Touure Dua"]
+    },
+    "Tondano Barat": {
+        kelurahan: ["Masarang", "Rerewokan", "Rinegetan", "Roong", "Tounkuramber", "Tuutu", "Watulambot", "Wawalintouan", "Wewelan"]
+    },
+    "Tondano Selatan": {
+        kelurahan: ["Koya", "Maesa Unima", "Peleloan", "Tataaran I", "Tataaran II", "Tataaran Patar", "Tounsaru", "Urongo"]
+    },
+    "Tondano Timur": {
+        kelurahan: ["Katinggolan", "Kendis", "Kiniar", "Liningaan", "Luaan", "Makalounsow", "Papakelan", "Ranowangko", "Taler", "Touluor", "Wengkol"]
+    },
+    "Tondano Utara": {
+        kelurahan: ["Kampung Jawa", "Marawas", "Sasaran", "Sumalangka", "Wulauan"],
+        desa: ["Kembuan", "Kembuan Satu", "Tonsea Lama"]
+    }
+};
 
 /**
  * Format date to Indonesian format: "16 Oktober 2025"
@@ -119,7 +201,7 @@ function generateBencanaTable(data) {
     tableBody.innerHTML = '';
 
     if (rankedData.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="10" class="text-center py-4 text-muted">Belum ada data bencana.</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-muted">Belum ada data bencana.</td></tr>`;
         return;
     }
 
@@ -138,23 +220,8 @@ function generateBencanaTable(data) {
             photoThumbnails = '<span class="text-muted">Tidak ada foto</span>';
         }
 
-        // Logic Status Badge
-        let statusBadge = '';
-        let rowClass = '';
-        if (item.status === 'approved') {
-            statusBadge = '<span class="badge bg-success">Disetujui</span>';
-        } else if (item.status === 'rejected') {
-            let reason = item.reject_reason || 'Tidak ada alasan';
-            reason = reason.replace(/'/g, "\\'"); 
-            statusBadge = `<span class="badge bg-danger">Ditolak</span> 
-                           <br><a href="#" class="small text-danger fw-bold text-decoration-none" onclick="showRejectReason('${reason}'); return false;">Lihat Alasan</a>`;
-            rowClass = 'table-danger';
-        } else {
-            statusBadge = '<span class="badge bg-warning text-dark">Menunggu</span>';
-        }
-
         const row = `
-            <tr class="${rowClass}">
+            <tr>
                 <td class="text-center">
                     <span class="badge ${rankColor} rounded-pill fs-6">${rank}</span>
                 </td>
@@ -169,7 +236,6 @@ function generateBencanaTable(data) {
                      } rounded-pill">${item.tingkatKerusakan}</span>
                 </td>
                 <td class="fw-bold text-primary">${item.finalScore.toFixed(4)}</td>
-                <td>${statusBadge}</td>
                 <td>${photoThumbnails}</td>
                 <td>
                     <div class="btn-group" role="group">
@@ -195,7 +261,7 @@ function generateInsidenTable(data) {
     tableBody.innerHTML = '';
 
     if (data.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-muted">Belum ada laporan insiden.</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted">Belum ada laporan insiden.</td></tr>`;
         return;
     }
 
@@ -214,28 +280,12 @@ function generateInsidenTable(data) {
             photoThumbnails = '<span class="text-muted">Tidak ada foto</span>';
         }
 
-        // Logic Status Badge
-        let statusBadge = '';
-        let rowClass = '';
-        if (item.status === 'approved') {
-            statusBadge = '<span class="badge bg-success">Disetujui</span>';
-        } else if (item.status === 'rejected') {
-            let reason = item.reject_reason || 'Tidak ada alasan';
-            reason = reason.replace(/'/g, "\\'");
-            statusBadge = `<span class="badge bg-danger">Ditolak</span> 
-                           <br><a href="#" class="small text-danger fw-bold text-decoration-none" onclick="showRejectReason('${reason}'); return false;">Lihat Alasan</a>`;
-            rowClass = 'table-danger';
-        } else {
-            statusBadge = '<span class="badge bg-warning text-dark">Menunggu</span>';
-        }
-
         const row = `
-            <tr class="${rowClass}">
+            <tr>
                 <td class="fw-medium">${item.jenisBencana}</td>
                 <td>${item.lokasi}</td>
                 <td>${item.keterangan || '<span class="text-muted">N/A</span>'}</td>
                 <td>${formatDate(item.disaster_date)}</td>
-                <td>${statusBadge}</td>
                 <td>${photoThumbnails}</td>
                 <td>
                     <div class="btn-group" role="group">
@@ -448,14 +498,14 @@ function filterAndRenderReports() {
         if (bencanaData.length > 0) {
             $('#disaster-report-table').DataTable({
                 "pageLength": 5, "lengthMenu": [3, 5], "responsive": true, "order": [[0, "asc"]],
-                "columnDefs": [ { "orderable": false, "targets": [1, 2, 3, 4, 5, 7, 8, 9] } ],
+                "columnDefs": [ { "orderable": false, "targets": [1, 2, 3, 4, 5, 7, 8] } ],
                 "language": { "search": "Cari:", "paginate": { "next": ">", "previous": "<" } }
             });
         }
         if (insidenData.length > 0) {
             $('#insiden-report-table').DataTable({
                 "pageLength": 5, "lengthMenu": [3, 5], "responsive": true, "order": [[3, "desc"]],
-                "columnDefs": [ { "orderable": false, "targets": [0, 1, 2, 4, 5, 6] } ],
+                "columnDefs": [ { "orderable": false, "targets": [0, 1, 2, 4, 5] } ],
                 "language": { "search": "Cari:", "paginate": { "next": ">", "previous": "<" } }
             });
         }
@@ -510,6 +560,49 @@ function handleLogout() {
     });
 }
 
+// Populate Kecamatan Dropdown
+const kecamatanSelect = document.getElementById('kecamatan');
+const lokasiSelect = document.getElementById('lokasi');
+if (kecamatanSelect && lokasiSelect) {
+    // Populate kecamatan options
+    Object.keys(minahasaLocations).forEach(kecamatan => {
+        const option = document.createElement('option');
+        option.value = kecamatan;
+        option.textContent = kecamatan;
+        kecamatanSelect.appendChild(option);
+    });
+
+    // Handle kecamatan change to populate desa/kelurahan
+    kecamatanSelect.addEventListener('change', function() {
+        const selectedKecamatan = this.value;
+        lokasiSelect.innerHTML = '<option value="">Pilih Desa/Kelurahan</option>';
+
+        if (selectedKecamatan && minahasaLocations[selectedKecamatan]) {
+            const villages = minahasaLocations[selectedKecamatan];
+
+            // Add desa options first
+            if (villages.desa) {
+                villages.desa.forEach(location => {
+                    const option = document.createElement('option');
+                    option.value = `Desa ${location}, Kec. ${selectedKecamatan}`;
+                    option.textContent = `Desa ${location}`;
+                    lokasiSelect.appendChild(option);
+                });
+            }
+
+            // Add kelurahan options
+            if (villages.kelurahan) {
+                villages.kelurahan.forEach(location => {
+                    const option = document.createElement('option');
+                    option.value = `Kelurahan ${location}, Kec. ${selectedKecamatan}`;
+                    option.textContent = `Kelurahan ${location}`;
+                    lokasiSelect.appendChild(option);
+                });
+            }
+        }
+    });
+}
+
 // --- FUNGSI CETAK LAPORAN ---
 
 /**
@@ -518,92 +611,254 @@ function handleLogout() {
 function handlePrintReport() {
     const year = document.getElementById('filter-year').value;
     const month = document.getElementById('filter-month').value;
-    
+
     let filterValue = year;
     if (month) filterValue += '-' + month;
 
     const filteredData = filterDataByMonth(allReportData, filterValue);
-    const bencanaData = filteredData.filter(d => d.kategori_laporan === 'bencana' || !d.kategori_laporan);
+    const bencanaData = filteredData.filter(
+        d => d.kategori_laporan === 'bencana' || !d.kategori_laporan
+    );
     const rankedData = runSAW(bencanaData);
-    
-    // Tentukan Judul Periode untuk Cetak
+
+    /* ===============================
+       PERIODE & TANGGAL LAPORAN
+    =============================== */
     let periodText = `Tahun ${year}`;
     if (month) {
         periodText = `Bulan ${getIndonesianMonthName(parseInt(month) - 1)} ${year}`;
     }
 
-    const previewContent = document.getElementById('preview-content');
-    
     const today = new Date();
-    const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+    const monthNames = [
+        "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+        "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+    ];
     const reportDate = `${today.getDate()} ${monthNames[today.getMonth()]} ${today.getFullYear()}`;
 
+    /* ===============================
+       BUILD TABLE ROWS
+    =============================== */
     let tableRows = '';
+
     if (rankedData.length === 0) {
-        tableRows = '<tr><td colspan="9" style="text-align:center; padding: 20px;">Tidak ada data laporan untuk periode ini.</td></tr>';
+        tableRows = `
+            <tr>
+                <td colspan="9" style="padding: 20px; text-align: center;">
+                    Tidak ada data laporan untuk periode ini.
+                </td>
+            </tr>
+        `;
     } else {
         rankedData.forEach((item, index) => {
-            let photoCell = '<span style="font-size: 10px; color: #666;">Tidak ada foto</span>';
+            let photoCell = `
+                <div style="font-size: 10px; color: #666;">
+                    Tidak ada foto
+                </div>
+            `;
+
             if (item.photos && item.photos.length > 0) {
-                const imageUrl = new URL(item.photos[0].file_path, window.location.href).href;
-                photoCell = `<img src="${imageUrl}" alt="Foto Bencana" style="width: 100%; height: 100%; object-fit: cover;">`;
+                const imageUrl = new URL(
+                    item.photos[0].file_path,
+                    window.location.href
+                ).href;
+
+                photoCell = `
+                    <img 
+                        src="${imageUrl}" 
+                        alt="Foto Bencana"
+                        style="width: 100px; height: 70px; object-fit: cover;"
+                    >
+                `;
             }
+
             tableRows += `
-                <tr style="border-bottom: 1px solid #ddd; page-break-inside: avoid;">
-                    <td style="padding: 8px; text-align: center;">${index + 1}</td>
-                    <td style="padding: 8px;">${item.jenisBencana}</td>
-                    <td style="padding: 8px;">${item.lokasi}</td>
-                    <td style="padding: 8px; text-align: center;">${formatDate(item.disaster_date)}</td>
-                    <td style="padding: 8px; text-align: center;">${item.jiwaTerdampak}</td>
-                    <td style="padding: 8px; text-align: center;">${item.kkTerdampak}</td>
-                    <td style="padding: 8px;">${item.tingkatKerusakan}</td>
-                    <td style="padding: 8px; font-weight: bold;">${item.finalScore.toFixed(4)}</td>
-                    <td style="padding: 0; text-align: center; width: 100px;">${photoCell}</td>
-                </tr>`;
+                <tr style="page-break-inside: avoid;">
+                    <td style="text-align: center;">${index + 1}</td>
+                    <td>${item.jenisBencana}</td>
+                    <td>${item.lokasi}</td>
+                    <td style="text-align: center;">${formatDate(item.disaster_date)}</td>
+                    <td style="text-align: center;">${item.jiwaTerdampak}</td>
+                    <td style="text-align: center;">${item.kkTerdampak}</td>
+                    <td>${item.tingkatKerusakan}</td>
+                    <td style="font-weight: bold; text-align: center;">
+                        ${item.finalScore.toFixed(4)}
+                    </td>
+                    <td style="text-align: center;">
+                        ${photoCell}
+                    </td>
+                </tr>
+            `;
         });
     }
 
+    /* ===============================
+       FINAL PRINT HTML
+    =============================== */
     const printContent = `
-        <div style="font-family: Arial, sans-serif; width: 100%; transform: scale(0.8); transform-origin: top left;">
-            <div style="text-align: center; border-bottom: 2px solid black; padding-bottom: 10px; margin-bottom: 20px;">
-                <h2 style="margin: 0; font-size: 24px; font-weight: bold;">BADAN PENANGGULANGAN BENCANA DAERAH</h2>
-                <h3 style="margin: 0; font-size: 20px;">KABUPATEN MINAHASA</h3>
-                <p style="margin: 5px 0 0; font-size: 12px;">Alamat: Jl. Instansi No. 123, Tondano, Minahasa, Sulawesi Utara</p>
-            </div>
-            <h1 style="text-align: center; font-size: 18px; text-decoration: underline; margin-bottom: 20px;">LAPORAN REKAPITULASI DAN PRIORITAS DAMPAK BENCANA</h1>
-            <p style="text-align: center; margin-top: -10px; margin-bottom: 30px;">Periode: ${periodText}</p>
-            <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
-                <thead>
-                    <tr style="background-color: #f2f2f2; text-align: left;">
-                        <th style="padding: 8px; border: 1px solid #ddd; text-align: center;">Peringkat</th>
-                        <th style="padding: 8px; border: 1px solid #ddd;">Jenis Bencana</th>
-                        <th style="padding: 8px; border: 1px solid #ddd;">Lokasi</th>
-                        <th style="padding: 8px; border: 1px solid #ddd; text-align: center;">Tanggal</th>
-                        <th style="padding: 8px; border: 1px solid #ddd; text-align: center;">Jiwa</th>
-                        <th style="padding: 8px; border: 1px solid #ddd; text-align: center;">KK</th>
-                        <th style="padding: 8px; border: 1px solid #ddd;">Kerusakan</th>
-                        <th style="padding: 8px; border: 1px solid #ddd;">Indeks Dampak</th>
-                        <th style="padding: 8px; border: 1px solid #ddd; text-align: center;">Dokumentasi</th>
-                    </tr>
-                </thead>
-                <tbody>${tableRows}</tbody>
+        <style>
+            @page {
+                size: A4;
+                margin: 20mm;
+            }
+
+            body {
+                font-family: Arial, sans-serif;
+                font-size: 14px;
+                color: #000;
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+
+            th, td {
+                border: 1px solid #000;
+                padding: 6px;
+                vertical-align: middle;
+            }
+
+            thead {
+                display: table-header-group;
+            }
+
+            .header {
+                margin-bottom: 20px;
+            }
+
+            .title {
+                text-align: center;
+                font-weight: bold;
+                text-decoration: underline;
+                margin: 20px 0 5px;
+            }
+
+            .periode {
+                text-align: center;
+                margin-bottom: 20px;
+            }
+
+            .signature-wrapper {
+                margin-top: 30px;
+                display: flex;
+                justify-content: flex-end;
+                page-break-inside: avoid;
+            }
+
+            .signature {
+                width: 300px;
+                text-align: center;
+                line-height: 1.3;
+            }
+        </style>
+
+        <div class="header">
+            <table style="width: 100%; border-collapse: collapse; border: none;">
+                <tr>
+                    <!-- LEFT LOGO -->
+                    <td style="width: 80px; text-align: left; vertical-align: middle; border: none;">
+                        <img
+                            src="uploads/logokab-minahasa.png"
+                            alt="Logo Kabupaten Minahasa"
+                            style="width: 70px; height: auto;"
+                        >
+                    </td>
+
+                        <!-- CENTER TEXT -->
+                        <td style="text-align: center; vertical-align: middle; border: none;">
+                            <div style="font-size: 14px; font-weight: bold;">
+                                PEMERINTAH KABUPATEN MINAHASA
+                            </div>
+                            <div style="font-size: 16px; font-weight: bold;">
+                                BADAN PENANGGULANGAN BENCANA DAERAH
+                            </div>
+                            <div style="font-size: 9px; margin-top: 3px;">
+                                Alamat: Kompleks Stadion Maesa Kelurahan Wewelen (Tondano)
+                            </div>
+                            <div style="font-size: 9px;">
+                                Website: www.minahasa.go.id E-mail: pemkab.minahasa@minahasa.go.id
+                            </div>
+                        </td>
+
+                    <!-- RIGHT LOGO -->
+                    <td style="width: 80px; text-align: right; vertical-align: middle; border: none;">
+                        <img
+                            src="uploads/logobpbd-minahasa.png"
+                            alt="Logo BPBD"
+                            style="width: 70px; height: auto;"
+                        >
+                    </td>
+                </tr>
             </table>
-            <!-- TTD Section Updated with Flexbox -->
-            <div style="margin-top: 1px; display: flex; justify-content: flex-end; page-break-inside: avoid;">
-                <div style="text-align: center; width: 300px;">
-                    <p style="margin-bottom: 60px;">Tondano, ${reportDate}<br><br>Kepala Badan Penanggulangan Bencana<br>Daerah Kabupaten Minahasa</p>
-                    <p style="font-weight: bold; text-decoration: underline;">LONA O.K. WATTIE, S.STP, M.AP</p>
-                    <p>Pembina Utama Muda, IV/c</p>
-                    <p>NIP. 19791007 199810 1001</p>
+
+            <hr style="border: 1px solid #000; margin-top: 8px;">
+        </div>
+
+        <div class="title">
+            LAPORAN REKAPITULASI DAN PRIORITAS DAMPAK BENCANA
+        </div>
+
+        <div class="periode">
+            Periode: ${periodText}
+        </div>
+
+        <table>
+            <thead>
+                <tr style="background-color: #f2f2f2;">
+                    <th style="width: 5%;">Peringkat</th>
+                    <th style="width: 15%;">Jenis Bencana</th>
+                    <th style="width: 18%;">Lokasi</th>
+                    <th style="width: 10%;">Tanggal</th>
+                    <th style="width: 8%;">Jiwa</th>
+                    <th style="width: 8%;">KK</th>
+                    <th style="width: 12%;">Kerusakan</th>
+                    <th style="width: 10%;">Indeks Dampak</th>
+                    <th style="width: 14%;">Dokumentasi</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${tableRows}
+            </tbody>
+        </table>
+
+        <div class="signature-wrapper">
+            <div class="signature">
+                <div style="margin-bottom: 60px;">
+                    Tondano, ${reportDate}<br><br>
+                    Kepala Badan Penanggulangan Bencana<br>
+                    Daerah Kabupaten Minahasa
+                </div>
+
+                <div style="font-weight: bold; text-decoration: underline;">
+                    LONA O.K. WATTIE, S.STP, M.AP
+                </div>
+                <div>
+                    Pembina Utama Muda, IV/c
+                </div>
+                <div>
+                    NIP. 19791007 199810 1001
                 </div>
             </div>
-        </div>`;
+        </div>
+    `;
 
-    document.getElementById('previewModalLabel').textContent = 'Preview Laporan Bencana (SAW)';
-    previewContent.innerHTML = printContent;
-    const modal = new bootstrap.Modal(document.getElementById('preview-modal'));
-    modal.show();
+    /* ===============================
+       PRINT USING HIDDEN IFRAME
+    =============================== */
+
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
+    iframe.contentDocument.write(printContent);
+    iframe.contentWindow.print();
+    // Remove iframe after printing
+    setTimeout(() => {
+        document.body.removeChild(iframe);
+    }, 1000);
 }
+
+
 
 /**
  * [CETAK 2] Laporan Insiden (Kronologis)
@@ -652,11 +907,47 @@ function handlePrintInsidenReport() {
     }
 
     const printContent = `
-        <div style="font-family: Arial, sans-serif; width: 100%; transform: scale(0.8); transform-origin: top left;">
-            <div style="text-align: center; border-bottom: 2px solid black; padding-bottom: 10px; margin-bottom: 20px;">
-                <h2 style="margin: 0; font-size: 24px; font-weight: bold;">BADAN PENANGGULANGAN BENCANA DAERAH</h2>
-                <h3 style="margin: 0; font-size: 20px;">KABUPATEN MINAHASA</h3>
-                <p style="margin: 5px 0 0; font-size: 12px;">Alamat: Jl. Instansi No. 123, Tondano, Minahasa, Sulawesi Utara</p>
+        <div style="font-family: Arial, sans-serif; width: 100%; font-size: 14px;">
+            <div style="margin-bottom: 20px;">
+                <table style="width: 100%; border-collapse: collapse; border: none;">
+                    <tr>
+                        <!-- LEFT LOGO -->
+                        <td style="width: 80px; text-align: left; vertical-align: middle; border: none;">
+                            <img
+                                src="uploads/logokab-minahasa.png"
+                                alt="Logo Kabupaten Minahasa"
+                                style="width: 70px; height: auto;"
+                            >
+                        </td>
+
+                        <!-- CENTER TEXT -->
+                        <td style="text-align: center; vertical-align: middle; border: none;">
+                            <div style="font-size: 14px; font-weight: bold;">
+                                PEMERINTAH KABUPATEN MINAHASA
+                            </div>
+                            <div style="font-size: 16px; font-weight: bold;">
+                                BADAN PENANGGULANGAN BENCANA DAERAH
+                            </div>
+                            <div style="font-size: 9px; margin-top: 3px;">
+                                Alamat: Kompleks Stadion Maesa Kelurahan Wewelen (Tondano)
+                            </div>
+                            <div style="font-size: 9px;">
+                                Website: www.minahasa.go.id E-mail: pemkab.minahasa@minahasa.go.id
+                            </div>
+                        </td>
+
+                        <!-- RIGHT LOGO -->
+                        <td style="width: 80px; text-align: right; vertical-align: middle; border: none;">
+                            <img
+                                src="uploads/logobpbd-minahasa.png"
+                                alt="Logo BPBD"
+                                style="width: 70px; height: auto;"
+                            >
+                        </td>
+                    </tr>
+                </table>
+
+                <hr style="border: 1px solid #000; margin-top: 8px;">
             </div>
             <h1 style="text-align: center; font-size: 18px; text-decoration: underline; margin-bottom: 20px;">LAPORAN REKAPITULASI INSIDEN DARURAT</h1>
             <p style="text-align: center; margin-top: -10px; margin-bottom: 30px;">Periode: ${periodText}</p>
@@ -683,10 +974,19 @@ function handlePrintInsidenReport() {
             </div>
         </div>`;
 
-    document.getElementById('previewModalLabel').textContent = 'Preview Laporan Insiden Darurat';
-    document.getElementById('preview-content').innerHTML = printContent;
-    const modal = new bootstrap.Modal(document.getElementById('preview-modal'));
-    modal.show();
+    /* ===============================
+       PRINT USING HIDDEN IFRAME
+    =============================== */
+
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
+    iframe.contentDocument.write(printContent);
+    iframe.contentWindow.print();
+    // Remove iframe after printing
+    setTimeout(() => {
+        document.body.removeChild(iframe);
+    }, 1000);
 }
 
 /**
@@ -759,49 +1059,134 @@ function handlePrintCumulativeReport() {
     const monthNamesIndo = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
     const reportDateString = `${today.getDate()} ${monthNamesIndo[today.getMonth()]} ${today.getFullYear()}`;
 
-    const printContent = `
-        <div style="font-family: Arial, sans-serif; width: 100%; font-size: 12px; color: #000;">
-            <div style="text-align: center; margin-bottom: 20px;">
-                <h2 style="margin: 0; font-size: 16px; font-weight: bold;">PEMERINTAH KABUPATEN MINAHASA</h2>
-                <h2 style="margin: 0; font-size: 18px; font-weight: bold;">BADAN PENANGGULANGAN BENCANA DAERAH</h2>
-                <p style="margin: 5px 0 0; font-size: 10px;">Alamat: Kompleks Stadion Maesa Kelurahan Wewelen (Tondano)</p>
-                <p style="margin: 0; font-size: 10px;">Website: www.minahasa.go.id E-mail: pemkab.minahasa@minahasa.go.id</p>
-                <hr style="border: 1px solid #000; margin-top: 10px;">
-            </div>
-            <div style="text-align: center; margin-bottom: 15px;">
-                <h3 style="margin: 0; font-size: 14px; font-weight: bold; text-decoration: underline;">REKAPITULASI DATA LAPORAN KEJADIAN BENCANA TAHUN ${selectedYear}</h3>
-            </div>
-            <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
-                <thead>
-                    <tr style="background-color: #e0e0e0;">
-                        <th style="border: 1px solid #000; padding: 5px; width: 30px;">NO</th>
-                        <th style="border: 1px solid #000; padding: 5px;">BULAN</th>
-                        ${disasterColumns.map(col => `<th style="border: 1px solid #000; padding: 5px; font-size: 10px;">${col.label}</th>`).join('')}
-                        <th style="border: 1px solid #000; padding: 5px;">TOTAL</th>
-                    </tr>
-                </thead>
-                <tbody>${tableRows}${grandTotalRow}</tbody>
-            </table>
-            <div style="margin-top: 10px; display: flex; justify-content: space-between; page-break-inside: avoid;">
-                <div style="text-align: center; width: 40%;">
-                    <p style="margin-bottom: 60px;">Tondano, ${reportDateString}<br>Kepala Badan Penanggulangan Bencana<br>Daerah Kabupaten Minahasa</p>
-                    <p style="font-weight: bold; text-decoration: underline;">LONA O.K. WATTIE, S.STP, M.AP</p>
-                    <p>Pembina Utama Muda, IV/c</p>
-                    <p>Nip. 19791007 199810 1001</p>
-                </div>
-                <div style="text-align: center; width: 40%;">
-                    <p style="margin-bottom: 60px;"><br>Kabid Kedaruratan dan Logistik</p>
-                    <p style="font-weight: bold; text-decoration: underline;">Jelly N. Bokau, SST</p>
-                    <p>Pembina Tkt I, IV/b</p>
-                    <p>Nip. 19680702 199003 2007</p>
-                </div>
-            </div>
-        </div>`;
+    // Matriks Rekap 
+const printContent = `
+<div style="font-family: Arial, sans-serif; width: 100%; font-size: 12px; color: #000;">
 
-    document.getElementById('previewModalLabel').textContent = 'Preview Laporan Kumulatif (Matrix)';
-    document.getElementById('preview-content').innerHTML = printContent;
-    const modal = new bootstrap.Modal(document.getElementById('preview-modal'));
-    modal.show();
+<div style="width: 100%; margin-bottom: 10px;">
+    <table style="width: 100%; border-collapse: collapse; border: none;">
+        <tr>
+            <!-- LEFT LOGO -->
+            <td style="width: 80px; text-align: left; vertical-align: middle; border: none;">
+                <img 
+                    src="uploads/logokab-minahasa.png"
+                    alt="Logo Kabupaten Minahasa"
+                    style="width: 70px; height: auto;"
+                >
+            </td>
+
+            <!-- CENTER TEXT -->
+            <td style="text-align: center; vertical-align: middle; border: none;">
+                <div style="font-size: 16px; font-weight: bold;">
+                    PEMERINTAH KABUPATEN MINAHASA
+                </div>
+                <div style="font-size: 18px; font-weight: bold;">
+                    BADAN PENANGGULANGAN BENCANA DAERAH
+                </div>
+                <div style="font-size: 10px; margin-top: 4px;">
+                    Alamat: Kompleks Stadion Maesa Kelurahan Wewelen (Tondano)
+                </div>
+                <div style="font-size: 10px;">
+                    Website: www.minahasa.go.id E-mail: pemkab.minahasa@minahasa.go.id
+                </div>
+            </td>
+
+            <!-- RIGHT LOGO -->
+            <td style="width: 80px; text-align: right; vertical-align: middle; border: none;">
+                <img 
+                    src="uploads/logobpbd-minahasa.png"
+                    alt="Logo BPBD"
+                    style="width: 70px; height: auto;"
+                >
+            </td>
+        </tr>
+    </table>
+
+    <hr style="border: px solid #000; margin-top: 8px;">
+</div>
+
+    <!-- TITLE -->
+    <div style="text-align: center; margin-bottom: 15px;">
+        <div style="font-size: 14px; font-weight: bold; text-decoration: underline;">
+            REKAPITULASI DATA LAPORAN KEJADIAN BENCANA TAHUN ${selectedYear}
+        </div>
+    </div>
+
+    <!-- TABLE -->
+    <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+        <thead>
+            <tr style="background-color: #e0e0e0;">
+                <th style="border: 1px solid #000; padding: 5px; width: 30px;">NO</th>
+                <th style="border: 1px solid #000; padding: 5px;">BULAN</th>
+                ${disasterColumns.map(col =>
+                    `<th style="border: 1px solid #000; padding: 5px; font-size: 10px;">${col.label}</th>`
+                ).join('')}
+                <th style="border: 1px solid #000; padding: 5px;">TOTAL</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${tableRows}
+            ${grandTotalRow}
+        </tbody>
+    </table>
+
+    <!-- SIGNATURES -->
+    <div style="margin-top: 10px; display: flex; justify-content: space-between; page-break-inside: avoid;">
+
+        <!-- LEFT SIGNATURE -->
+        <div style="width: 40%; text-align: center;">
+            <div style="margin-bottom: 60px; line-height: 1.3;">
+                Tondano, ${reportDateString}<br>
+                Kepala Badan Penanggulangan Bencana<br>
+                Daerah Kabupaten Minahasa
+            </div>
+
+            <div style="font-weight: bold; text-decoration: underline; line-height: 1.2;">
+                LONA O.K. WATTIE, S.STP, M.AP
+            </div>
+            <div style="line-height: 1.2;">
+                Pembina Utama Muda, IV/c
+            </div>
+            <div style="line-height: 1.2;">
+                Nip. 19791007 199810 1001
+            </div>
+        </div>
+
+        <!-- RIGHT SIGNATURE -->
+        <div style="width: 40%; text-align: center; margin-top: 18px;">
+            <div style="margin-bottom: 60px; line-height: 1.3;">
+                Kabid Kedaruratan dan Logistik
+            </div>
+
+            <div style="font-weight: bold; text-decoration: underline; line-height: 1.2;">
+                JELLY N. BOKAU, S.ST
+            </div>
+            <div style="line-height: 1.2;">
+                Pembina Tkt I, IV/b
+            </div>
+            <div style="line-height: 1.2;">
+                Nip. 19680702 199003 2007
+            </div>
+        </div>
+
+    </div>
+</div>
+`;
+
+
+    /* ===============================
+       PRINT USING HIDDEN IFRAME
+    =============================== */
+
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
+    iframe.contentDocument.write(printContent);
+    iframe.contentWindow.print();
+    // Remove iframe after printing
+    setTimeout(() => {
+        document.body.removeChild(iframe);
+    }, 1000);
 }
 
 /**
@@ -889,55 +1274,138 @@ function handlePrintImpactReport() {
     const monthNamesIndo = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
     const reportDateString = `${today.getDate()} ${monthNamesIndo[today.getMonth()]} ${today.getFullYear()}`;
 
-    const printContent = `
-        <div style="font-family: Arial, sans-serif; width: 100%; font-size: 10px; color: #000;">
-            <div style="text-align: center; margin-bottom: 20px;">
-                <h2 style="margin: 0; font-size: 14px; font-weight: bold;">PEMERINTAH KABUPATEN MINAHASA</h2>
-                <h2 style="margin: 0; font-size: 16px; font-weight: bold;">BADAN PENANGGULANGAN BENCANA DAERAH</h2>
-                <p style="margin: 3px 0 0; font-size: 9px;">Alamat: Kompleks Stadion Maesa Kelurahan Wewelen (Tondano)</p>
-                <p style="margin: 0; font-size: 9px;">Website: www.minahasa.go.id E-mail: pemkab.minahasa@minahasa.go.id</p>
-                <hr style="border: 1px solid #000; margin-top: 8px;">
+const printContent = `
+<div style="font-family: Arial, sans-serif; width: 100%; font-size: 10px; color: #000;">
+
+    <!-- HEADER WITH LOGOS -->
+    <div style="margin-bottom: 20px;">
+        <table style="width: 100%; border-collapse: collapse; border: none;">
+            <tr>
+                <!-- LEFT LOGO -->
+                <td style="width: 80px; text-align: left; vertical-align: middle; border: none;">
+                    <img 
+                        src="uploads/logokab-minahasa.png"
+                        alt="Logo Kabupaten Minahasa"
+                        style="width: 70px; height: auto;"
+                    >
+                </td>
+
+                <!-- CENTER HEADER TEXT -->
+                <td style="text-align: center; vertical-align: middle; border: none;">
+                    <div style="font-size: 14px; font-weight: bold;">
+                        PEMERINTAH KABUPATEN MINAHASA
+                    </div>
+                    <div style="font-size: 16px; font-weight: bold;">
+                        BADAN PENANGGULANGAN BENCANA DAERAH
+                    </div>
+                    <div style="font-size: 9px; margin-top: 3px;">
+                        Alamat: Kompleks Stadion Maesa Kelurahan Wewelen (Tondano)
+                    </div>
+                    <div style="font-size: 9px;">
+                        Website: www.minahasa.go.id E-mail: pemkab.minahasa@minahasa.go.id
+                    </div>
+                </td>
+
+                <!-- RIGHT LOGO -->
+                <td style="width: 80px; text-align: right; vertical-align: middle; border: none;">
+                    <img 
+                        src="uploads/logobpbd-minahasa.png"
+                        alt="Logo BPBD Minahasa"
+                        style="width: 70px; height: auto;"
+                    >
+                </td>
+            </tr>
+        </table>
+
+        <hr style="border: 1px solid #000; margin-top: 8px;">
+    </div>
+
+    <!-- TITLE -->
+    <div style="text-align: center; margin-bottom: 15px;">
+        <div style="font-size: 12px; font-weight: bold; text-decoration: underline;">
+            REKAPITULASI DATA LAPORAN KORBAN TERDAMPAK BENCANA TAHUN ${selectedYear}
+        </div>
+    </div>
+
+    <!-- TABLE -->
+    <table style="width: 100%; border-collapse: collapse; font-size: 9px;">
+        <thead>
+            <tr style="background-color: #e0e0e0;">
+                <th rowspan="2" style="border: 1px solid #000; padding: 4px; width: 25px;">NO</th>
+                <th rowspan="2" style="border: 1px solid #000; padding: 4px;">BULAN</th>
+                ${headerRowTop}
+                <th colspan="2" style="border: 1px solid #000; padding: 4px;">TOTAL</th>
+            </tr>
+            <tr style="background-color: #e0e0e0;">
+                ${headerRowBottom}
+                <th style="border: 1px solid #000; padding: 4px; font-size: 8px;">KK</th>
+                <th style="border: 1px solid #000; padding: 4px; font-size: 8px;">JIWA</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${tableRows}
+            ${grandTotalRow}
+        </tbody>
+    </table>
+
+    <!-- SIGNATURES -->
+    <div style="margin-top: 12px; display: flex; justify-content: space-between; page-break-inside: avoid;">
+
+        <!-- LEFT -->
+        <div style="width: 40%; text-align: center;">
+            <div style="margin-bottom: 50px; line-height: 1.3;">
+                Mengetahui<br>
+                Kepala Badan Penanggulangan Bencana<br>
+                Daerah Kabupaten Minahasa
             </div>
-            <div style="text-align: center; margin-bottom: 15px;">
-                <h3 style="margin: 0; font-size: 12px; font-weight: bold; text-decoration: underline;">REKAPITULASI DATA LAPORAN KORBAN TERDAMPAK BENCANA TAHUN ${selectedYear}</h3>
+
+            <div style="font-weight: bold; text-decoration: underline; line-height: 1.2;">
+                LONA O.K. WATTIE, S.STP, M.AP
             </div>
-            <table style="width: 100%; border-collapse: collapse; font-size: 9px;">
-                <thead>
-                    <tr style="background-color: #e0e0e0;">
-                        <th rowspan="2" style="border: 1px solid #000; padding: 4px; width: 25px;">NO</th>
-                        <th rowspan="2" style="border: 1px solid #000; padding: 4px;">BULAN</th>
-                        ${headerRowTop}
-                        <th colspan="2" style="border: 1px solid #000; padding: 4px;">TOTAL</th>
-                    </tr>
-                    <tr style="background-color: #e0e0e0;">
-                        ${headerRowBottom}
-                        <th style="border: 1px solid #000; padding: 4px; font-size: 8px;">KK</th>
-                        <th style="border: 1px solid #000; padding: 4px; font-size: 8px;">JIWA</th>
-                    </tr>
-                </thead>
-                <tbody>${tableRows}${grandTotalRow}</tbody>
-            </table>
-            <div style="margin-top: 10px; display: flex; justify-content: space-between; page-break-inside: avoid;">
-                <div style="text-align: center; width: 40%;">
-                    <p style="margin-bottom: 50px;">Mengetahui<br>Kepala Badan Penanggulangan Bencana<br>Daerah Kabupaten Minahasa</p>
-                    <p style="font-weight: bold; text-decoration: underline;">LONA O.K. WATTIE, S.STP, M.AP</p>
-                    <p>Pembina Utama Muda, IV/c</p>
-                    <p>Nip. 19791007 199810 1001</p>
-                </div>
-                <div style="text-align: center; width: 40%;">
-                    <p style="margin-bottom: 50px;">Tondano, ${reportDateString}<br><br>Kabid Kedaruratan dan Logistik</p>
-                    <p style="font-weight: bold; text-decoration: underline;">Jelly N. Bokau, SST</p>
-                    <p>Pembina Tkt I, IV/b</p>
-                    <p>Nip. 19680702 199003 2007</p>
-                </div>
+            <div style="line-height: 1.2;">
+                Pembina Utama Muda, IV/c
+            </div>
+            <div style="line-height: 1.2;">
+                Nip. 19791007 199810 1001
             </div>
         </div>
-    `;
 
-    document.getElementById('previewModalLabel').textContent = 'Preview Laporan Dampak (KK/Jiwa)';
-    document.getElementById('preview-content').innerHTML = printContent;
-    const modal = new bootstrap.Modal(document.getElementById('preview-modal'));
-    modal.show();
+        <!-- RIGHT -->
+        <div style="width: 40%; text-align: center;">
+            <div style="margin-bottom: 50px; line-height: 1.3;">
+                Tondano, ${reportDateString}<br><br>
+                Kabid Kedaruratan dan Logistik
+            </div>
+
+            <div style="font-weight: bold; text-decoration: underline; line-height: 1.2;">
+                JELLY N. BOKAU, S.ST
+            </div>
+            <div style="line-height: 1.2;">
+                Pembina Tkt I, IV/b
+            </div>
+            <div style="line-height: 1.2;">
+                Nip. 19680702 199003 2007
+            </div>
+        </div>
+
+    </div>
+</div>
+`;
+
+
+    /* ===============================
+       PRINT USING HIDDEN IFRAME
+    =============================== */
+
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
+    iframe.contentDocument.write(printContent);
+    iframe.contentWindow.print();
+    // Remove iframe after printing
+    setTimeout(() => {
+        document.body.removeChild(iframe);
+    }, 1000);
 }
 
 /**
@@ -956,6 +1424,7 @@ function handleConfirmPrint() {
             <!DOCTYPE html>
             <html>
             <head>
+            
                 <meta charset="UTF-8">
                 <title>Laporan BPBD</title>
                 <style>
@@ -964,6 +1433,7 @@ function handleConfirmPrint() {
                     th, td { border: 1px solid #000; padding: 4px; text-align: center; }
                     @page { size: A4 landscape; margin: 1cm; }
                 </style>
+                    <base href="${window.location.origin}/">
             </head>
             <body>
                 ${printContent}
